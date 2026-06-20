@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physical Security Dashboard</title>
+    <!-- jsPDF & html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <style>
+        /* ---------- RESET & BASE ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            color: #1a2332;
+            padding: 20px;
+        }
+        /* ---------- SCROLLBAR ---------- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e9ecf0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b0b8c5;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8f9aab;
+        }
+
+        /* ---------- LAYOUT ---------- */
+        .app {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* ---------- HEADER ---------- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: #ffffff;
+            padding: 20px 28px;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 span {
+            background: #1a3a6b;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 2px 14px;
+            border-radius: 40px;
+        }
+        .header-meta {
+            font-size: 14px;
+            color: #5e6f88;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .header-meta .badge {
+            background: #eef2f7;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1a3a6b;
+        }
+
+        /* ---------- STATS ROW ---------- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-left: 4px solid #1a3a6b;
+        }
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7d98;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #0f1a2e;
+        }
+        .stat-card:nth-child(2) {
+            border-left-color: #2d7a5a;
+        }
+        .stat-card:nth-child(3) {
+            border-left-color: #b45a2a;
+        }
+        .stat-card:nth-child(4) {
+            border-left-color: #8a4a8a;
+        }
+        .stat-card:nth-child(5) {
+            border-left-color: #2a6b8a;
+        }
+
+        /* ---------- FILTERS ---------- */
+        .filters {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 14px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 130px;
+            flex: 1 0 auto;
+        }
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #5a6f8a;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1.5px solid #dce2ea;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafcfe;
+            color: #1a2332;
+            outline: none;
+            transition: 0.2s;
+            width: 100%;
+            min-width: 120px;
+        }
+        .filter-group select:focus,
+        .filter-group input:focus {
+            border-color: #1a3a6b;
+            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12);
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #e9edf3;
+            color: #1a2332;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1a3a6b;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #0f2a4f;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26, 58, 107, 0.25);
+        }
+        .btn-success {
+            background: #1f7b4a;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #16633a;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid #dce2ea;
+        }
+        .btn-outline:hover {
+            background: #f0f4fa;
+        }
+        .btn-sm {
+            padding: 5px 14px;
+            font-size: 12px;
+        }
+        .btn-pdf {
+            background: #c0392b;
+            color: #fff;
+        }
+        .btn-pdf:hover {
+            background: #a93226;
+        }
+
+        /* ---------- VIEW TOGGLE ---------- */
+        .view-toggle {
+            display: flex;
+            gap: 6px;
+            background: #eef2f7;
+            padding: 4px;
+            border-radius: 12px;
+        }
+        .view-toggle button {
+            padding: 6px 18px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            background: transparent;
+            color: #5a6f8a;
+            transition: 0.2s;
+        }
+        .view-toggle button.active {
+            background: #ffffff;
+            color: #1a3a6b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .view-toggle button:hover:not(.active) {
+            color: #1a2332;
+        }
+
+        /* ---------- TABLE ---------- */
+        .table-wrap {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+        .table-scroll {
+            overflow-x: auto;
+            padding: 0 4px 4px 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead {
+            background: #f7f9fc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            font-weight: 600;
+            color: #3d5068;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #edf1f7;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: #f8faff;
+        }
+        .clickable {
+            cursor: pointer;
+        }
+        .clickable:hover {
+            background: #f0f5ff !important;
+        }
+        .badge-status {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-status.in {
+            background: #dff0e6;
+            color: #1a6a3a;
+        }
+        .badge-status.out {
+            background: #fce8e6;
+            color: #a93226;
+        }
+        .badge-status.pending {
+            background: #fff3d6;
+            color: #9e6d1a;
+        }
+        .badge-status.approved {
+            background: #d6eaf8;
+            color: #1a5276;
+        }
+        .badge-status.returned {
+            background: #e8daef;
+            color: #6c3483;
+        }
+
+        /* ---------- GROUPED VIEW ---------- */
+        .grouped-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .group-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 20px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-top: 4px solid #1a3a6b;
+        }
+        .group-card .group-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0f1a2e;
+            margin-bottom: 4px;
+        }
+        .group-card .group-sub {
+            font-size: 13px;
+            color: #6b7d98;
+            margin-bottom: 12px;
+        }
+        .group-card .group-count {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a3a6b;
+        }
+        .group-card .group-items {
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #2d4058;
+        }
+        .group-card .group-items li {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f4fa;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+        }
+        .group-card .group-items li span:last-child {
+            color: #5a6f8a;
+            font-weight: 500;
+        }
+        .group-card:nth-child(2) {
+            border-top-color: #2d7a5a;
+        }
+        .group-card:nth-child(3) {
+            border-top-color: #b45a2a;
+        }
+        .group-card:nth-child(4) {
+            border-top-color: #8a4a8a;
+        }
+        .group-card:nth-child(5) {
+            border-top-color: #2a6b8a;
+        }
+        .group-card:nth-child(6) {
+            border-top-color: #b47a2a;
+        }
+
+        /* ---------- MODAL ---------- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 18, 32, 0.55);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal {
+            background: #ffffff;
+            border-radius: 24px;
+            max-width: 760px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.25s ease;
+        }
+        .modal-header {
+            padding: 20px 28px;
+            border-bottom: 1.5px solid #edf1f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6b7d98;
+            padding: 0 6px;
+            line-height: 1;
+        }
+        .modal-header .close-btn:hover {
+            color: #1a2332;
+        }
+        .modal-body {
+            padding: 24px 28px 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body .detail-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f4fa;
+        }
+        .modal-body .detail-row .label {
+            font-weight: 600;
+            width: 140px;
+            flex-shrink: 0;
+            color: #3d5068;
+        }
+        .modal-body .detail-row .value {
+            color: #0f1a2e;
+            word-break: break-word;
+        }
+        .modal-footer {
+            padding: 16px 28px 24px;
+            border-top: 1.5px solid #edf1f7;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        /* ---------- EMPTY STATE ---------- */
+        .empty-state {
+            padding: 48px 20px;
+            text-align: center;
+            color: #6b7d98;
+        }
+        .empty-state .big-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            color: #1a2332;
+            margin-bottom: 4px;
+        }
+
+        /* ---------- ANIMATIONS ---------- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 18px;
+            }
+            .filter-group {
+                min-width: unset;
+            }
+            .filter-actions {
+                justify-content: stretch;
+            }
+            .filter-actions .btn {
+                flex: 1;
+                text-align: center;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .grouped-view {
+                grid-template-columns: 1fr;
+            }
+            .modal {
+                max-width: 100%;
+                max-height: 95vh;
+                border-radius: 16px;
+            }
+            .modal-body .detail-row {
+                flex-direction: column;
+                padding: 10px 0;
+            }
+            .modal-body .detail-row .label {
+                width: 100%;
+                margin-bottom: 2px;
+            }
+            .table-scroll table {
+                font-size: 13px;
+            }
+            th,
+            td {
+                padding: 10px 12px;
+            }
+            .view-toggle button {
+                padding: 5px 12px;
+                font-size: 12px;
+            }
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .modal-overlay {
+                position: static !important;
+                background: none !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
+                display: flex !important;
+            }
+            .modal {
+                max-height: none !important;
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+            }
+            .modal-footer {
+                display: none !important;
+            }
+            .modal-header .close-btn {
+                display: none !important;
+            }
+            body {
+                padding: 10px;
+                background: #fff;
+            }
+            .header,
+            .filters,
+            .stats,
+            .table-wrap,
+            .group-card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+            }
+            .grouped-view {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app" id="app">
+        <!-- HEADER -->
+        <header class="header no-print">
+            <h1>🔐 Physical Security <span>Dashboard</span></h1>
+            <div class="header-meta">
+                <span class="badge">🕒 3 Shifts</span>
+                <span class="badge">📍 3 Access Points</span>
+                <span class="badge" id="reportCount">0 Reports</span>
+            </div>
+        </header>
+
+        <!-- STATS -->
+        <section class="stats no-print" id="statsRow">
+            <div class="stat-card"><div class="label">Total Reports</div><div class="value" id="statTotal">0</div></div>
+            <div class="stat-card"><div class="label">Check-Ins</div><div class="value" id="statCheckIn">0</div></div>
+            <div class="stat-card"><div class="label">Check-Outs</div><div class="value" id="statCheckOut">0</div></div>
+            <div class="stat-card"><div class="label">Exits</div><div class="value" id="statExits">0</div></div>
+            <div class="stat-card"><div class="label">Returns</div><div class="value" id="statReturns">0</div></div>
+        </section>
+
+        <!-- FILTERS -->
+        <section class="filters no-print">
+            <div class="filter-group">
+                <label>Shift</label>
+                <select id="filterShift"><option value="">All Shifts</option><option value="Morning">Morning</option><option value="Afternoon">Afternoon</option><option value="Night">Night</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Location</label>
+                <select id="filterLocation"><option value="">All Locations</option><option value="Manager's Entrance">Manager's Entrance</option><option value="Changing Bit">Changing Bit</option><option value="Gatehouse">Gatehouse</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Activity</label>
+                <select id="filterActivity"><option value="">All Activities</option><option value="Check-In">Check-In</option><option value="Check-Out">Check-Out</option><option value="Exit">Exit</option><option value="Return">Return</option></select>
+            </div>
+            <div class="filter-group">
+                <label>User</label>
+                <select id="filterUser"><option value="">All Users</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Date From</label>
+                <input type="date" id="filterDateFrom" />
+            </div>
+            <div class="filter-group">
+                <label>Date To</label>
+                <input type="date" id="filterDateTo" />
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                <button class="btn btn-outline" id="resetFilters">Reset</button>
+            </div>
+        </section>
+
+        <!-- VIEW TOGGLE -->
+        <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div class="view-toggle">
+                <button class="active" data-view="grouped">📊 Grouped</button>
+                <button data-view="table">📋 Table</button>
+            </div>
+            <button class="btn btn-pdf btn-sm no-print" id="exportPdfAll">📄 Export All PDF</button>
+        </div>
+
+        <!-- GROUPED VIEW -->
+        <div id="groupedContainer" class="grouped-view"></div>
+
+        <!-- TABLE VIEW -->
+        <div id="tableContainer" class="table-wrap" style="display:none;">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Staff</th>
+                            <th>Activity</th>
+                            <th>Location</th>
+                            <th>Shift</th>
+                            <th>Date / Time</th>
+                            <th>Status</th>
+                            <th style="text-align:center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div id="tableEmpty" class="empty-state" style="display:none;">
+                <div class="big-icon">📭</div>
+                <h3>No reports match your filters</h3>
+                <p>Try adjusting the filters above.</p>
+            </div>
+        </div>
+
+        <!-- MODAL -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Report Details</h2>
+                    <button class="close-btn" id="modalClose">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer no-print">
+                    <button class="btn btn-outline" id="modalCloseBtn">Close</button>
+                    <button class="btn btn-pdf" id="modalPdfBtn">📄 PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  1.  SAMPLE DATA GENERATION
+        // ============================================================
+
+        const USERS = [
+            { staffId: 'S001', firstName: 'Ade', lastName: 'Ogun', role: 'Manager', department: 'Security',
+            location: 'Manager\'s Entrance', grade: 'M1' },
+            { staffId: 'S002', firstName: 'Bisi', lastName: 'Adelaja', role: 'Supervisor', department: 'Security',
+                location: 'Changing Bit', grade: 'S1' },
+            { staffId: 'S003', firstName: 'Chidi', lastName: 'Okonkwo', role: 'Officer', department: 'Security',
+                location: 'Gatehouse', grade: 'O1' },
+            { staffId: 'S004', firstName: 'Damilola', lastName: 'Adebayo', role: 'Manager', department: 'HR',
+                location: 'Manager\'s Entrance', grade: 'M2' },
+            { staffId: 'S005', firstName: 'Emeka', lastName: 'Nwosu', role: 'Supervisor', department: 'Finance',
+                location: 'Changing Bit', grade: 'S2' },
+            { staffId: 'S006', firstName: 'Funmi', lastName: 'Ola', role: 'Officer', department: 'IT',
+                location: 'Gatehouse', grade: 'O2' },
+            { staffId: 'S007', firstName: 'Gbenga', lastName: 'Akin', role: 'Manager', department: 'Operations',
+                location: 'Manager\'s Entrance', grade: 'M1' },
+            { staffId: 'S008', firstName: 'Hauwa', lastName: 'Bello', role: 'Supervisor', department: 'Medical',
+                location: 'Changing Bit', grade: 'S1' },
+            { staffId: 'S009', firstName: 'Ifeanyi', lastName: 'Okafor', role: 'Officer', department: 'Canteen',
+                location: 'Gatehouse', grade: 'O1' },
+            { staffId: 'S010', firstName: 'Joy', lastName: 'Eze', role: 'Manager', department: 'Security',
+                location: 'Manager\'s Entrance', grade: 'M2' },
+            { staffId: 'S011', firstName: 'Kunle', lastName: 'Bamidele', role: 'Supervisor', department: 'Security',
+                location: 'Changing Bit', grade: 'S2' },
+            { staffId: 'S012', firstName: 'Lola', lastName: 'Fashina', role: 'Officer', department: 'IT',
+                location: 'Gatehouse', grade: 'O2' },
+            { staffId: 'S013', firstName: 'Musa', lastName: 'Abdullahi', role: 'Manager', department: 'Finance',
+                location: 'Manager\'s Entrance', grade: 'M1' },
+            { staffId: 'S014', firstName: 'Ngozi', lastName: 'Ibe', role: 'Supervisor', department: 'HR',
+                location: 'Changing Bit', grade: 'S1' },
+            { staffId: 'S015', firstName: 'Ola', lastName: 'Oladipo', role: 'Officer', department: 'Security',
+                location: 'Gatehouse', grade: 'O1' },
+            { staffId: 'S016', firstName: 'Paul', lastName: 'Okoro', role: 'Manager', department: 'Operations',
+                location: 'Manager\'s Entrance', grade: 'M2' },
+            { staffId: 'S017', firstName: 'Queen', lastName: 'Uche', role: 'Supervisor', department: 'Medical',
+                location: 'Changing Bit', grade: 'S2' },
+            { staffId: 'S018', firstName: 'Rahman', lastName: 'Yusuf', role: 'Officer', department: 'Canteen',
+                location: 'Gatehouse', grade: 'O2' },
+            { staffId: 'S019', firstName: 'Sade', lastName: 'Adeniyi', role: 'Manager', department: 'Security',
+                location: 'Manager\'s Entrance', grade: 'M1' },
+            { staffId: 'S020', firstName: 'Tunde', lastName: 'Balogun', role: 'Supervisor', department: 'Security',
+                location: 'Changing Bit', grade: 'S1' },
+        ];
+
+        const LOCATIONS = ['Manager\'s Entrance', 'Changing Bit', 'Gatehouse'];
+        const SHIFTS = ['Morning', 'Afternoon', 'Night'];
+        const ACTIVITIES = ['Check-In', 'Check-Out', 'Exit', 'Return'];
+
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        function randomDate(from, to) {
+            const d = new Date(from.getTime() + Math.random() * (to.getTime() - from.getTime()));
+            return d;
+        }
+
+        function formatDate(d) {
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        }
+
+        function formatTime(d) {
+            return pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function formatDateTime(d) {
+            return formatDate(d) + ' ' + formatTime(d);
+        }
+
+        function generateReports(count) {
+            const reports = [];
+            const start = new Date();
+            start.setDate(start.getDate() - 45);
+            const end = new Date();
+
+            for (let i = 0; i < count; i++) {
+                const user = pick(USERS);
+                const location = pick(LOCATIONS);
+                const shift = pick(SHIFTS);
+                const activity = pick(ACTIVITIES);
+                const date = randomDate(start, end);
+                const statuses = ['in', 'out', 'pending', 'approved', 'returned'];
+                const status = pick(statuses);
+
+                let details = {};
+                if (activity === 'Check-In') {
+                    details = { purpose: pick(['Routine', 'Meeting', 'Shift Start', 'Delivery', 'Visitor']), checkedBy: pick(
+                            USERS).staffId };
+                } else if (activity === 'Check-Out') {
+                    details = { purpose: pick(['Shift End', 'Break', 'Meeting', 'Errand']), checkedBy: pick(USERS).staffId };
+                } else if (activity === 'Exit') {
+                    details = { destination: pick(['Canteen', 'Medical', 'HR', 'Finance', 'IT', 'External']),
+                        approvedBy: pick(USERS).staffId, exitCategory: pick(['Internal', 'External']) };
+                } else if (activity === 'Return') {
+                    details = { returnedFrom: pick(['Canteen', 'Medical', 'HR', 'Finance', 'IT', 'External']),
+                        returnedBy: pick(USERS).staffId };
+                }
+
+                reports.push({
+                    id: i + 1,
+                    staffId: user.staffId,
+                    staffName: user.firstName + ' ' + user.lastName,
+                    department: user.department,
+                    role: user.role,
+                    location: location,
+                    shift: shift,
+                    activity: activity,
+                    date: formatDate(date),
+                    time: formatTime(date),
+                    dateTime: formatDateTime(date),
+                    status: status,
+                    details: details,
+                    // extra fields for display
+                    rawDate: date,
+                });
+            }
+            // sort by date descending
+            reports.sort((a, b) => b.rawDate - a.rawDate);
+            return reports;
+        }
+
+        // ============================================================
+        //  2.  STATE
+        // ============================================================
+
+        let allReports = generateReports(65);
+        let filteredReports = [...allReports];
+        let currentView = 'grouped';
+        let currentModalReport = null;
+
+        // ============================================================
+        //  3.  DOM REFS
+        // ============================================================
+
+        const $ = (id) => document.getElementById(id);
+        const filterShift = $('filterShift');
+        const filterLocation = $('filterLocation');
+        const filterActivity = $('filterActivity');
+        const filterUser = $('filterUser');
+        const filterDateFrom = $('filterDateFrom');
+        const filterDateTo = $('filterDateTo');
+        const applyBtn = $('applyFilters');
+        const resetBtn = $('resetFilters');
+        const groupedContainer = $('groupedContainer');
+        const tableContainer = $('tableContainer');
+        const tableBody = $('tableBody');
+        const tableEmpty = $('tableEmpty');
+        const modalOverlay = $('modalOverlay');
+        const modalBody = $('modalBody');
+        const modalTitle = $('modalTitle');
+        const modalClose = $('modalClose');
+        const modalCloseBtn = $('modalCloseBtn');
+        const modalPdfBtn = $('modalPdfBtn');
+        const reportCount = $('reportCount');
+        const statTotal = $('statTotal');
+        const statCheckIn = $('statCheckIn');
+        const statCheckOut = $('statCheckOut');
+        const statExits = $('statExits');
+        const statReturns = $('statReturns');
+        const exportPdfAll = $('exportPdfAll');
+
+        // ============================================================
+        //  4.  POPULATE USER FILTER
+        // ============================================================
+
+        function populateUserFilter() {
+            const unique = {};
+            allReports.forEach(r => { unique[r.staffId] = r.staffName; });
+            filterUser.innerHTML = '<option value="">All Users</option>';
+            Object.entries(unique).sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+                filterUser.innerHTML += `<option value="${id}">${name}</option>`;
+            });
+        }
+        populateUserFilter();
+
+        // ============================================================
+        //  5.  FILTER LOGIC
+        // ============================================================
+
+        function applyFilters() {
+            const shift = filterShift.value;
+            const location = filterLocation.value;
+            const activity = filterActivity.value;
+            const userId = filterUser.value;
+            const from = filterDateFrom.value;
+            const to = filterDateTo.value;
+
+            filteredReports = allReports.filter(r => {
+                if (shift && r.shift !== shift) return false;
+                if (location && r.location !== location) return false;
+                if (activity && r.activity !== activity) return false;
+                if (userId && r.staffId !== userId) return false;
+                if (from && r.date < from) return false;
+                if (to && r.date > to) return false;
+                return true;
+            });
+            render();
+        }
+
+        function resetFilters() {
+            filterShift.value = '';
+            filterLocation.value = '';
+            filterActivity.value = '';
+            filterUser.value = '';
+            filterDateFrom.value = '';
+            filterDateTo.value = '';
+            filteredReports = [...allReports];
+            render();
+        }
+
+        // ============================================================
+        //  6.  RENDER
+        // ============================================================
+
+        function render() {
+            updateStats();
+            updateReportCount();
+            if (currentView === 'grouped') {
+                renderGrouped();
+            } else {
+                renderTable();
+            }
+        }
+
+        function updateStats() {
+            const total = filteredReports.length;
+            const checkIns = filteredReports.filter(r => r.activity === 'Check-In').length;
+            const checkOuts = filteredReports.filter(r => r.activity === 'Check-Out').length;
+            const exits = filteredReports.filter(r => r.activity === 'Exit').length;
+            const returns = filteredReports.filter(r => r.activity === 'Return').length;
+            statTotal.textContent = total;
+            statCheckIn.textContent = checkIns;
+            statCheckOut.textContent = checkOuts;
+            statExits.textContent = exits;
+            statReturns.textContent = returns;
+        }
+
+        function updateReportCount() {
+            reportCount.textContent = filteredReports.length + ' Reports';
+        }
+
+        // ---------- GROUPED ----------
+        function renderGrouped() {
+            groupedContainer.style.display = 'grid';
+            tableContainer.style.display = 'none';
+
+            if (filteredReports.length === 0) {
+                groupedContainer.innerHTML = `
+              <div class="empty-state" style="grid-column:1/-1;">
+                <div class="big-icon">📭</div>
+                <h3>No reports match your filters</h3>
+                <p>Try adjusting the filters above.</p>
+              </div>
+            `;
+                return;
+            }
+
+            // Group by location + activity
+            const groups = {};
+            filteredReports.forEach(r => {
+                const key = r.location + '|' + r.activity;
+                if (!groups[key]) groups[key] = { location: r.location, activity: r.activity, items: [], count: 0 };
+                groups[key].items.push(r);
+                groups[key].count++;
+            });
+
+            let html = '';
+            Object.values(groups).forEach(g => {
+                const iconMap = { 'Check-In': '⬇️', 'Check-Out': '⬆️', 'Exit': '🚪', 'Return': '🔄' };
+                const icon = iconMap[g.activity] || '📌';
+                const statusBadge = g.activity === 'Check-In' ? 'in' : g.activity === 'Check-Out' ? 'out' : g.activity ===
+                    'Exit' ? 'pending' : 'returned';
+                html += `
+              <div class="group-card">
+                <div class="group-title">${icon} ${g.activity}</div>
+                <div class="group-sub">📍 ${g.location}</div>
+                <div class="group-count">${g.count}</div>
+                <ul class="group-items">
+                  ${g.items.slice(0, 8).map(r => `
+                    <li>
+                      <span>${r.staffName}</span>
+                      <span>${r.date} ${r.time}</span>
+                    </li>
+                  `).join('')}
+                  ${g.items.length > 8 ? `<li style="color:#6b7d98;font-style:italic;">… and ${g.items.length - 8} more</li>` : ''}
+                </ul>
+                <button class="btn btn-sm btn-primary" style="margin-top:12px;width:100%;" onclick="viewGroup('${g.location}','${g.activity}')">
+                  View All (${g.count})
+                </button>
+              </div>
+            `;
+            });
+            groupedContainer.innerHTML = html;
+        }
+
+        // viewGroup: filter the table to show only that group
+        window.viewGroup = function(location, activity) {
+            filterLocation.value = location;
+            filterActivity.value = activity;
+            currentView = 'table';
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+            document.querySelector('.view-toggle button[data-view="table"]').classList.add('active');
+            applyFilters();
+        };
+
+        // ---------- TABLE ----------
+        function renderTable() {
+            groupedContainer.style.display = 'none';
+            tableContainer.style.display = 'block';
+
+            if (filteredReports.length === 0) {
+                tableBody.innerHTML = '';
+                tableEmpty.style.display = 'block';
+                return;
+            }
+            tableEmpty.style.display = 'none';
+
+            let html = '';
+            filteredReports.forEach((r, idx) => {
+                const statusMap = {
+                    'in': '✅ In',
+                    'out': '❌ Out',
+                    'pending': '⏳ Pending',
+                    'approved': '✔️ Approved',
+                    'returned': '↩️ Returned'
+                };
+                const statusClass = r.status;
+                html += `
+              <tr class="clickable" onclick="openModal(${r.id})">
+                <td>${r.id}</td>
+                <td><strong>${r.staffName}</strong><br><span style="font-size:12px;color:#6b7d98;">${r.department}</span></td>
+                <td>${r.activity}</td>
+                <td>${r.location}</td>
+                <td>${r.shift}</td>
+                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                <td><span class="badge-status ${statusClass}">${statusMap[r.status] || r.status}</span></td>
+                <td style="text-align:center;">
+                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf(${r.id})">📄 PDF</button>
+                </td>
+              </tr>
+            `;
+            });
+            tableBody.innerHTML = html;
+        }
+
+        // ============================================================
+        //  7.  MODAL
+        // ============================================================
+
+        window.openModal = function(id) {
+            const report = filteredReports.find(r => r.id === id);
+            if (!report) return;
+            currentModalReport = report;
+            modalTitle.textContent = `Report #${report.id} — ${report.activity}`;
+
+            const details = report.details || {};
+            let detailRows = `
+            <div class="detail-row"><span class="label">Staff</span><span class="value">${report.staffName} (${report.staffId})</span></div>
+            <div class="detail-row"><span class="label">Department</span><span class="value">${report.department}</span></div>
+            <div class="detail-row"><span class="label">Role</span><span class="value">${report.role}</span></div>
+            <div class="detail-row"><span class="label">Location</span><span class="value">${report.location}</span></div>
+            <div class="detail-row"><span class="label">Shift</span><span class="value">${report.shift}</span></div>
+            <div class="detail-row"><span class="label">Activity</span><span class="value">${report.activity}</span></div>
+            <div class="detail-row"><span class="label">Date / Time</span><span class="value">${report.dateTime}</span></div>
+            <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${report.status}">${report.status}</span></span></div>
+          `;
+
+            // Additional details
+            if (Object.keys(details).length) {
+                Object.entries(details).forEach(([k, v]) => {
+                    const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                    detailRows +=
+                        `<div class="detail-row"><span class="label">${label}</span><span class="value">${v}</span></div>`;
+                });
+            }
+
+            modalBody.innerHTML = detailRows;
+            modalOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+            currentModalReport = null;
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        modalCloseBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============================================================
+        //  8.  PDF EXPORT
+        // ============================================================
+
+        // Helper to generate PDF from HTML content
+        function generatePdfFromElement(element, filename = 'report.pdf') {
+            const { jsPDF } = window.jspdf;
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                let heightLeft = pdfHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+
+                while (heightLeft > 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+                pdf.save(filename);
+            }).catch(err => {
+                alert('Could not generate PDF. Please try again.');
+                console.error(err);
+            });
+        }
+
+        // Export single report from table row
+        window.exportSinglePdf = function(id) {
+            const report = filteredReports.find(r => r.id === id);
+            if (!report) return;
+            // Build a mini detail view
+            const div = document.createElement('div');
+            div.style.padding = '24px';
+            div.style.fontFamily = 'Segoe UI, sans-serif';
+            div.style.maxWidth = '600px';
+            div.style.margin = '0 auto';
+            div.style.background = '#fff';
+            const d = report.details || {};
+            let extra = '';
+            Object.entries(d).forEach(([k, v]) => {
+                const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                extra += `<p><strong>${label}:</strong> ${v}</p>`;
+            });
+            div.innerHTML = `
+            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Report</h2>
+            <p><strong>Report #:</strong> ${report.id}</p>
+            <p><strong>Staff:</strong> ${report.staffName} (${report.staffId})</p>
+            <p><strong>Department:</strong> ${report.department}</p>
+            <p><strong>Role:</strong> ${report.role}</p>
+            <p><strong>Location:</strong> ${report.location}</p>
+            <p><strong>Shift:</strong> ${report.shift}</p>
+            <p><strong>Activity:</strong> ${report.activity}</p>
+            <p><strong>Date / Time:</strong> ${report.dateTime}</p>
+            <p><strong>Status:</strong> ${report.status}</p>
+            ${extra}
+            <p style="margin-top:20px;font-size:12px;color:#6b7d98;">Generated on ${new Date().toLocaleString()}</p>
+          `;
+            document.body.appendChild(div);
+            generatePdfFromElement(div, `Report_${report.id}_${report.staffId}.pdf`);
+            setTimeout(() => div.remove(), 100);
+        };
+
+        // Export all (current filtered view)
+        exportPdfAll.addEventListener('click', function() {
+            if (filteredReports.length === 0) {
+                alert('No reports to export.');
+                return;
+            }
+            // Build a full report table
+            const div = document.createElement('div');
+            div.style.padding = '24px';
+            div.style.fontFamily = 'Segoe UI, sans-serif';
+            div.style.background = '#fff';
+            let rows = '';
+            filteredReports.forEach(r => {
+                rows += `
+              <tr>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.id}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.activity}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.location}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.shift}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.date}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.status}</td>
+              </tr>
+            `;
+            });
+            div.innerHTML = `
+            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">📋 Physical Security — Full Report</h2>
+            <p><strong>Total Records:</strong> ${filteredReports.length}</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+            <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
+              <thead>
+                <tr style="background:#f0f4f8;">
+                  <th style="padding:8px 10px;text-align:left;">#</th>
+                  <th style="padding:8px 10px;text-align:left;">Staff</th>
+                  <th style="padding:8px 10px;text-align:left;">Activity</th>
+                  <th style="padding:8px 10px;text-align:left;">Location</th>
+                  <th style="padding:8px 10px;text-align:left;">Shift</th>
+                  <th style="padding:8px 10px;text-align:left;">Date</th>
+                  <th style="padding:8px 10px;text-align:left;">Status</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+            document.body.appendChild(div);
+            generatePdfFromElement(div, `Security_Report_${formatDate(new Date())}.pdf`);
+            setTimeout(() => div.remove(), 100);
+        });
+
+        // Modal PDF
+        modalPdfBtn.addEventListener('click', function() {
+            if (!currentModalReport) return;
+            // Use the same logic as single export
+            const report = currentModalReport;
+            const div = document.createElement('div');
+            div.style.padding = '24px';
+            div.style.fontFamily = 'Segoe UI, sans-serif';
+            div.style.maxWidth = '600px';
+            div.style.margin = '0 auto';
+            div.style.background = '#fff';
+            const d = report.details || {};
+            let extra = '';
+            Object.entries(d).forEach(([k, v]) => {
+                const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                extra += `<p><strong>${label}:</strong> ${v}</p>`;
+            });
+            div.innerHTML = `
+            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Report</h2>
+            <p><strong>Report #:</strong> ${report.id}</p>
+            <p><strong>Staff:</strong> ${report.staffName} (${report.staffId})</p>
+            <p><strong>Department:</strong> ${report.department}</p>
+            <p><strong>Role:</strong> ${report.role}</p>
+            <p><strong>Location:</strong> ${report.location}</p>
+            <p><strong>Shift:</strong> ${report.shift}</p>
+            <p><strong>Activity:</strong> ${report.activity}</p>
+            <p><strong>Date / Time:</strong> ${report.dateTime}</p>
+            <p><strong>Status:</strong> ${report.status}</p>
+            ${extra}
+            <p style="margin-top:20px;font-size:12px;color:#6b7d98;">Generated on ${new Date().toLocaleString()}</p>
+          `;
+            document.body.appendChild(div);
+            generatePdfFromElement(div, `Report_${report.id}_${report.staffId}.pdf`);
+            setTimeout(() => div.remove(), 100);
+        });
+
+        // ============================================================
+        //  9.  VIEW TOGGLE
+        // ============================================================
+
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentView = this.dataset.view;
+                render();
+            });
+        });
+
+        // ============================================================
+        //  10. EVENT BINDING
+        // ============================================================
+
+        applyBtn.addEventListener('click', applyFilters);
+        resetBtn.addEventListener('click', resetFilters);
+
+        // Enter key on filters
+        document.querySelectorAll('.filter-group select, .filter-group input').forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') applyFilters();
+            });
+        });
+
+        // ============================================================
+        //  11. INIT
+        // ============================================================
+
+        render();
+
+        // Log sample data to console for inspection
+        console.log('🔐 Physical Security Dashboard initialized.');
+        console.log(`📊 ${allReports.length} reports loaded.`);
+        console.log('👥 Users:', USERS.length);
+        console.log('📋 Sample report:', allReports[0]);
+    </script>
+</body>
+</html>
