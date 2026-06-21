@@ -405,6 +405,14 @@
             background: #fce8e6;
             color: #a93226;
         }
+        .badge-status.checked-in {
+            background: #d6eaf8;
+            color: #1a5276;
+        }
+        .badge-status.reported {
+            background: #fdebd0;
+            color: #9e6d1a;
+        }
 
         /* ---------- MODAL ---------- */
         .modal-overlay {
@@ -661,15 +669,6 @@
                     <option value="Morning">Morning (7‑2)</option>
                     <option value="Afternoon">Afternoon (2‑9)</option>
                     <option value="Night">Night (9‑7)</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Location</label>
-                <select id="filterLocation">
-                    <option value="">All Locations</option>
-                    <option value="Manager's Entrance">Manager's Entrance</option>
-                    <option value="Changing Room Beat">Changing Room Beat</option>
-                    <option value="Gate House">Gate House</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -1049,7 +1048,7 @@
         const statIncidents = $('statIncidents');
         const exportPdfAll = $('exportPdfAll');
 
-/ ============================================================
+        // ============================================================
         //  4.  POPULATE FILTER DROPDOWNS
         // ============================================================
 
@@ -1063,7 +1062,7 @@
         populateDepartmentFilter();
 
         // ============================================================
-        //  5.  FILTER LOGIC
+        //  5.  FILTER LOGIC (FIXED)
         // ============================================================
 
         function applyFilters() {
@@ -1074,8 +1073,18 @@
             const from = filterDateFrom.value;
             const to = filterDateTo.value;
 
+            // Map display type to record type
+            const typeMap = {
+                'passes': 'pass',
+                'visitors': 'visitor',
+                'staff': 'staff',
+                'incidents': 'incident',
+                'all': 'all'
+            };
+            const typeValue = typeMap[type] || 'all';
+
             filteredRecords = allRecords.filter(r => {
-                if (type !== 'all' && r.type !== type) return false;
+                if (typeValue !== 'all' && r.type !== typeValue) return false;
                 if (shift && r.shift !== shift) return false;
                 if (location && r.location !== location) return false;
                 if (dept && r.department !== dept) return false;
@@ -1283,7 +1292,6 @@
             <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${record.status}">${record.status}</span></span></div>
           `;
 
-            // Additional details
             if (Object.keys(details).length) {
                 Object.entries(details).forEach(([k, v]) => {
                     const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
