@@ -22,7 +22,6 @@
             color: #1a2332;
             padding: 20px;
         }
-        /* ---------- SCROLLBAR ---------- */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -39,7 +38,6 @@
             background: #8f9aab;
         }
 
-        /* ---------- LAYOUT ---------- */
         .app {
             max-width: 1440px;
             margin: 0 auto;
@@ -255,7 +253,83 @@
             color: #1a2332;
         }
 
-        /* ---------- TABLE ---------- */
+        /* ---------- GROUPED (TREE) VIEW ---------- */
+        .grouped-view {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+        .group-node {
+            margin-bottom: 4px;
+        }
+        .group-node .node-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+            background: #f8faff;
+            border-left: 4px solid #1a3a6b;
+        }
+        .group-node .node-header:hover {
+            background: #eef4fa;
+        }
+        .group-node .node-header .icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .group-node .node-header .label {
+            font-weight: 600;
+            flex: 1;
+        }
+        .group-node .node-header .count {
+            background: #dce4ed;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a3a6b;
+        }
+        .group-node .node-children {
+            margin-left: 24px;
+            border-left: 2px dashed #dce2ea;
+            padding-left: 12px;
+        }
+        .group-node .node-children .node-header {
+            border-left-color: #6b8ba8;
+        }
+        .group-node .node-children .node-children .node-header {
+            border-left-color: #9ab0c4;
+        }
+        .group-node .leaf-list {
+            margin-left: 24px;
+            padding-left: 12px;
+            border-left: 2px dashed #dce2ea;
+        }
+        .leaf-item {
+            padding: 6px 12px;
+            border-bottom: 1px solid #f0f4fa;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .leaf-item .detail {
+            color: #5a6f8a;
+            font-size: 13px;
+        }
+        .group-node .node-header .expand-btn {
+            margin-left: 8px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: #6b7d98;
+        }
+
+        /* ---------- TABLE VIEW ---------- */
         .table-wrap {
             background: #ffffff;
             border-radius: 16px;
@@ -307,6 +381,22 @@
             font-size: 12px;
             font-weight: 600;
         }
+        .badge-status.issued {
+            background: #d6eaf8;
+            color: #1a5276;
+        }
+        .badge-status.returned {
+            background: #d5f5e3;
+            color: #1a6a3a;
+        }
+        .badge-status.notreturned {
+            background: #fdebd0;
+            color: #9e6d1a;
+        }
+        .badge-status.closed {
+            background: #e8daef;
+            color: #6c3483;
+        }
         .badge-status.in {
             background: #dff0e6;
             color: #1a6a3a;
@@ -314,82 +404,6 @@
         .badge-status.out {
             background: #fce8e6;
             color: #a93226;
-        }
-        .badge-status.pending {
-            background: #fff3d6;
-            color: #9e6d1a;
-        }
-        .badge-status.approved {
-            background: #d6eaf8;
-            color: #1a5276;
-        }
-        .badge-status.returned {
-            background: #e8daef;
-            color: #6c3483;
-        }
-
-        /* ---------- GROUPED VIEW ---------- */
-        .grouped-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
-        }
-        .group-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 18px 20px 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border-top: 4px solid #1a3a6b;
-        }
-        .group-card .group-title {
-            font-weight: 700;
-            font-size: 16px;
-            color: #0f1a2e;
-            margin-bottom: 4px;
-        }
-        .group-card .group-sub {
-            font-size: 13px;
-            color: #6b7d98;
-            margin-bottom: 12px;
-        }
-        .group-card .group-count {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a3a6b;
-        }
-        .group-card .group-items {
-            margin-top: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 13px;
-            color: #2d4058;
-        }
-        .group-card .group-items li {
-            padding: 5px 0;
-            border-bottom: 1px solid #f0f4fa;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-        }
-        .group-card .group-items li span:last-child {
-            color: #5a6f8a;
-            font-weight: 500;
-        }
-        .group-card:nth-child(2) {
-            border-top-color: #2d7a5a;
-        }
-        .group-card:nth-child(3) {
-            border-top-color: #b45a2a;
-        }
-        .group-card:nth-child(4) {
-            border-top-color: #8a4a8a;
-        }
-        .group-card:nth-child(5) {
-            border-top-color: #2a6b8a;
-        }
-        .group-card:nth-child(6) {
-            border-top-color: #b47a2a;
         }
 
         /* ---------- MODAL ---------- */
@@ -536,9 +550,6 @@
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .grouped-view {
-                grid-template-columns: 1fr;
-            }
             .modal {
                 max-width: 100%;
                 max-height: 95vh;
@@ -562,6 +573,14 @@
             .view-toggle button {
                 padding: 5px 12px;
                 font-size: 12px;
+            }
+            .group-node .node-children {
+                margin-left: 12px;
+                padding-left: 8px;
+            }
+            .leaf-list {
+                margin-left: 12px !important;
+                padding-left: 8px !important;
             }
         }
         @media print {
@@ -594,12 +613,9 @@
             .filters,
             .stats,
             .table-wrap,
-            .group-card {
+            .grouped-view {
                 box-shadow: none !important;
                 border: 1px solid #e2e8f0;
-            }
-            .grouped-view {
-                break-inside: avoid;
             }
         }
     </style>
@@ -612,37 +628,64 @@
             <h1>🔐 Physical Security <span>Dashboard</span></h1>
             <div class="header-meta">
                 <span class="badge">🕒 3 Shifts</span>
-                <span class="badge">📍 3 Access Points</span>
-                <span class="badge" id="reportCount">0 Reports</span>
+                <span class="badge">📍 3 Beats</span>
+                <span class="badge" id="reportCount">0 Records</span>
             </div>
         </header>
 
         <!-- STATS -->
         <section class="stats no-print" id="statsRow">
-            <div class="stat-card"><div class="label">Total Reports</div><div class="value" id="statTotal">0</div></div>
-            <div class="stat-card"><div class="label">Check-Ins</div><div class="value" id="statCheckIn">0</div></div>
-            <div class="stat-card"><div class="label">Check-Outs</div><div class="value" id="statCheckOut">0</div></div>
-            <div class="stat-card"><div class="label">Exits</div><div class="value" id="statExits">0</div></div>
-            <div class="stat-card"><div class="label">Returns</div><div class="value" id="statReturns">0</div></div>
+            <div class="stat-card"><div class="label">Total Records</div><div class="value" id="statTotal">0</div></div>
+            <div class="stat-card"><div class="label">Passes Issued</div><div class="value" id="statPassIssued">0</div></div>
+            <div class="stat-card"><div class="label">Visitors</div><div class="value" id="statVisitors">0</div></div>
+            <div class="stat-card"><div class="label">Staff Check‑Ins</div><div class="value" id="statStaffIn">0</div></div>
+            <div class="stat-card"><div class="label">Incidents</div><div class="value" id="statIncidents">0</div></div>
         </section>
 
         <!-- FILTERS -->
         <section class="filters no-print">
             <div class="filter-group">
+                <label>Report Type</label>
+                <select id="reportType">
+                    <option value="passes">Passes (Changing Room)</option>
+                    <option value="visitors">Visitors (Manager's Entrance)</option>
+                    <option value="staff">Staff Check‑In/Out</option>
+                    <option value="incidents">Incidents & Relief</option>
+                    <option value="all" selected>All Combined</option>
+                </select>
+            </div>
+            <div class="filter-group">
                 <label>Shift</label>
-                <select id="filterShift"><option value="">All Shifts</option><option value="Morning">Morning</option><option value="Afternoon">Afternoon</option><option value="Night">Night</option></select>
+                <select id="filterShift">
+                    <option value="">All Shifts</option>
+                    <option value="Morning">Morning (7‑2)</option>
+                    <option value="Afternoon">Afternoon (2‑9)</option>
+                    <option value="Night">Night (9‑7)</option>
+                </select>
             </div>
             <div class="filter-group">
                 <label>Location</label>
-                <select id="filterLocation"><option value="">All Locations</option><option value="Manager's Entrance">Manager's Entrance</option><option value="Changing Bit">Changing Bit</option><option value="Gatehouse">Gatehouse</option></select>
+                <select id="filterLocation">
+                    <option value="">All Locations</option>
+                    <option value="Manager's Entrance">Manager's Entrance</option>
+                    <option value="Changing Room Beat">Changing Room Beat</option>
+                    <option value="Gate House">Gate House</option>
+                </select>
             </div>
             <div class="filter-group">
-                <label>Activity</label>
-                <select id="filterActivity"><option value="">All Activities</option><option value="Check-In">Check-In</option><option value="Check-Out">Check-Out</option><option value="Exit">Exit</option><option value="Return">Return</option></select>
+                <label>Location</label>
+                <select id="filterLocation">
+                    <option value="">All Locations</option>
+                    <option value="Manager's Entrance">Manager's Entrance</option>
+                    <option value="Changing Room Beat">Changing Room Beat</option>
+                    <option value="Gate House">Gate House</option>
+                </select>
             </div>
             <div class="filter-group">
-                <label>User</label>
-                <select id="filterUser"><option value="">All Users</option></select>
+                <label>Department</label>
+                <select id="filterDepartment">
+                    <option value="">All Departments</option>
+                </select>
             </div>
             <div class="filter-group">
                 <label>Date From</label>
@@ -653,7 +696,7 @@
                 <input type="date" id="filterDateTo" />
             </div>
             <div class="filter-actions">
-                <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                <button class="btn btn-primary" id="applyFilters">Apply</button>
                 <button class="btn btn-outline" id="resetFilters">Reset</button>
             </div>
         </section>
@@ -677,8 +720,9 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Staff</th>
-                            <th>Activity</th>
+                            <th>Type</th>
+                            <th>Staff/Visitor</th>
+                            <th>Department</th>
                             <th>Location</th>
                             <th>Shift</th>
                             <th>Date / Time</th>
@@ -691,7 +735,7 @@
             </div>
             <div id="tableEmpty" class="empty-state" style="display:none;">
                 <div class="big-icon">📭</div>
-                <h3>No reports match your filters</h3>
+                <h3>No records match your filters</h3>
                 <p>Try adjusting the filters above.</p>
             </div>
         </div>
@@ -700,7 +744,7 @@
         <div class="modal-overlay" id="modalOverlay">
             <div class="modal">
                 <div class="modal-header">
-                    <h2 id="modalTitle">Report Details</h2>
+                    <h2 id="modalTitle">Record Details</h2>
                     <button class="close-btn" id="modalClose">&times;</button>
                 </div>
                 <div class="modal-body" id="modalBody"></div>
@@ -714,56 +758,77 @@
 
     <script>
         // ============================================================
-        //  1.  SAMPLE DATA GENERATION
+        //  1.  DATA MODEL & SAMPLE GENERATION
         // ============================================================
 
-        const USERS = [
-            { staffId: 'S001', firstName: 'Ade', lastName: 'Ogun', role: 'Manager', department: 'Security',
-            location: 'Manager\'s Entrance', grade: 'M1' },
-            { staffId: 'S002', firstName: 'Bisi', lastName: 'Adelaja', role: 'Supervisor', department: 'Security',
-                location: 'Changing Bit', grade: 'S1' },
-            { staffId: 'S003', firstName: 'Chidi', lastName: 'Okonkwo', role: 'Officer', department: 'Security',
-                location: 'Gatehouse', grade: 'O1' },
-            { staffId: 'S004', firstName: 'Damilola', lastName: 'Adebayo', role: 'Manager', department: 'HR',
-                location: 'Manager\'s Entrance', grade: 'M2' },
-            { staffId: 'S005', firstName: 'Emeka', lastName: 'Nwosu', role: 'Supervisor', department: 'Finance',
-                location: 'Changing Bit', grade: 'S2' },
-            { staffId: 'S006', firstName: 'Funmi', lastName: 'Ola', role: 'Officer', department: 'IT',
-                location: 'Gatehouse', grade: 'O2' },
-            { staffId: 'S007', firstName: 'Gbenga', lastName: 'Akin', role: 'Manager', department: 'Operations',
-                location: 'Manager\'s Entrance', grade: 'M1' },
-            { staffId: 'S008', firstName: 'Hauwa', lastName: 'Bello', role: 'Supervisor', department: 'Medical',
-                location: 'Changing Bit', grade: 'S1' },
-            { staffId: 'S009', firstName: 'Ifeanyi', lastName: 'Okafor', role: 'Officer', department: 'Canteen',
-                location: 'Gatehouse', grade: 'O1' },
-            { staffId: 'S010', firstName: 'Joy', lastName: 'Eze', role: 'Manager', department: 'Security',
-                location: 'Manager\'s Entrance', grade: 'M2' },
-            { staffId: 'S011', firstName: 'Kunle', lastName: 'Bamidele', role: 'Supervisor', department: 'Security',
-                location: 'Changing Bit', grade: 'S2' },
-            { staffId: 'S012', firstName: 'Lola', lastName: 'Fashina', role: 'Officer', department: 'IT',
-                location: 'Gatehouse', grade: 'O2' },
-            { staffId: 'S013', firstName: 'Musa', lastName: 'Abdullahi', role: 'Manager', department: 'Finance',
-                location: 'Manager\'s Entrance', grade: 'M1' },
-            { staffId: 'S014', firstName: 'Ngozi', lastName: 'Ibe', role: 'Supervisor', department: 'HR',
-                location: 'Changing Bit', grade: 'S1' },
-            { staffId: 'S015', firstName: 'Ola', lastName: 'Oladipo', role: 'Officer', department: 'Security',
-                location: 'Gatehouse', grade: 'O1' },
-            { staffId: 'S016', firstName: 'Paul', lastName: 'Okoro', role: 'Manager', department: 'Operations',
-                location: 'Manager\'s Entrance', grade: 'M2' },
-            { staffId: 'S017', firstName: 'Queen', lastName: 'Uche', role: 'Supervisor', department: 'Medical',
-                location: 'Changing Bit', grade: 'S2' },
-            { staffId: 'S018', firstName: 'Rahman', lastName: 'Yusuf', role: 'Officer', department: 'Canteen',
-                location: 'Gatehouse', grade: 'O2' },
-            { staffId: 'S019', firstName: 'Sade', lastName: 'Adeniyi', role: 'Manager', department: 'Security',
-                location: 'Manager\'s Entrance', grade: 'M1' },
-            { staffId: 'S020', firstName: 'Tunde', lastName: 'Balogun', role: 'Supervisor', department: 'Security',
-                location: 'Changing Bit', grade: 'S1' },
+        // Shifts with time ranges
+        const SHIFTS = [
+            { name: 'Morning', start: 7, end: 14 },
+            { name: 'Afternoon', start: 14, end: 21 },
+            { name: 'Night', start: 21, end: 7 } // end next day
         ];
 
-        const LOCATIONS = ['Manager\'s Entrance', 'Changing Bit', 'Gatehouse'];
-        const SHIFTS = ['Morning', 'Afternoon', 'Night'];
-        const ACTIVITIES = ['Check-In', 'Check-Out', 'Exit', 'Return'];
+        // Departments & Units (from SQL schema)
+        const DEPARTMENTS = [
+            { id: 1, name: 'Security' },
+            { id: 2, name: 'HR' },
+            { id: 3, name: 'Finance' },
+            { id: 4, name: 'IT' },
+            { id: 5, name: 'Operations' },
+            { id: 6, name: 'Medical' },
+            { id: 7, name: 'Canteen' },
+            { id: 8, name: 'Procurement' },
+            { id: 9, name: 'Inventory' },
+            { id: 10, name: 'Internal Audit' },
+        ];
+        const UNITS = {
+            1: ['Patrol', 'Control Room', 'Gate House'],
+            2: ['Recruitment', 'Payroll'],
+            3: ['Accounts', 'Budget'],
+            4: ['Infrastructure', 'Support'],
+            5: ['Planning', 'Logistics'],
+            6: ['Clinic', 'First Aid'],
+            7: ['Kitchen', 'Service'],
+            8: ['Purchasing'],
+            9: ['Warehouse'],
+            10: ['Compliance'],
+        };
 
+        // Staff profiles (matching SQL Profiles table)
+        function generateStaff() {
+            const staff = [];
+            const firstNames = ['Ade', 'Bisi', 'Chidi', 'Damilola', 'Emeka', 'Funmi', 'Gbenga', 'Hauwa', 'Ifeanyi', 'Joy',
+                'Kunle', 'Lola', 'Musa', 'Ngozi', 'Ola', 'Paul', 'Queen', 'Rahman', 'Sade', 'Tunde', 'Uche', 'Victor',
+                'Wale', 'Xavier', 'Yemi', 'Zainab'
+            ];
+            const lastNames = ['Ogun', 'Adelaja', 'Okonkwo', 'Adebayo', 'Nwosu', 'Ola', 'Akin', 'Bello', 'Okafor', 'Eze',
+                'Bamidele', 'Fashina', 'Abdullahi', 'Ibe', 'Oladipo', 'Okoro', 'Uche', 'Yusuf', 'Adeniyi', 'Balogun',
+                'Okonkwo', 'Adeyemi', 'Oluwaseun', 'Okafor', 'Bamidele', 'Adebayo'
+            ];
+            const roles = ['Manager', 'Supervisor', 'Officer', 'Assistant'];
+            for (let i = 0; i < 40; i++) {
+                const dept = DEPARTMENTS[i % DEPARTMENTS.length];
+                const unitList = UNITS[dept.id] || ['General'];
+                const unit = unitList[i % unitList.length];
+                const role = roles[i % roles.length];
+                const staffId = 'S' + String(i + 1).padStart(3, '0');
+                staff.push({
+                    staffId,
+                    firstName: firstNames[i % firstNames.length],
+                    lastName: lastNames[i % lastNames.length],
+                    department: dept.name,
+                    departmentId: dept.id,
+                    unit: unit,
+                    role: role,
+                    location: ['Manager\'s Entrance', 'Changing Room Beat', 'Gate House'][i % 3],
+                });
+            }
+            return staff;
+        }
+
+        const STAFF = generateStaff();
+
+        // Helper functions
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
         function pick(arr) { return arr[rand(0, arr.length - 1)]; }
@@ -771,8 +836,7 @@
         function pad(n) { return String(n).padStart(2, '0'); }
 
         function randomDate(from, to) {
-            const d = new Date(from.getTime() + Math.random() * (to.getTime() - from.getTime()));
-            return d;
+            return new Date(from.getTime() + Math.random() * (to.getTime() - from.getTime()));
         }
 
         function formatDate(d) {
@@ -787,76 +851,182 @@
             return formatDate(d) + ' ' + formatTime(d);
         }
 
-        function generateReports(count) {
-            const reports = [];
+        function getShiftForTime(hours) {
+            if (hours >= 7 && hours < 14) return 'Morning';
+            if (hours >= 14 && hours < 21) return 'Afternoon';
+            return 'Night';
+        }
+
+        function getShiftNameForDate(date) {
+            return getShiftForTime(date.getHours());
+        }
+
+        // Generate records of different types
+        function generateRecords(count) {
+            const records = [];
             const start = new Date();
-            start.setDate(start.getDate() - 45);
+            start.setDate(start.getDate() - 60);
             const end = new Date();
 
-            for (let i = 0; i < count; i++) {
-                const user = pick(USERS);
-                const location = pick(LOCATIONS);
-                const shift = pick(SHIFTS);
-                const activity = pick(ACTIVITIES);
+            // Helper to pick a staff
+            const getStaff = () => pick(STAFF);
+
+            // 1. Passes (only at Changing Room Beat)
+            const passStatuses = ['issued', 'returned', 'notreturned', 'closed'];
+            for (let i = 0; i < Math.floor(count * 0.3); i++) {
+                const staff = getStaff();
                 const date = randomDate(start, end);
-                const statuses = ['in', 'out', 'pending', 'approved', 'returned'];
-                const status = pick(statuses);
-
-                let details = {};
-                if (activity === 'Check-In') {
-                    details = { purpose: pick(['Routine', 'Meeting', 'Shift Start', 'Delivery', 'Visitor']), checkedBy: pick(
-                            USERS).staffId };
-                } else if (activity === 'Check-Out') {
-                    details = { purpose: pick(['Shift End', 'Break', 'Meeting', 'Errand']), checkedBy: pick(USERS).staffId };
-                } else if (activity === 'Exit') {
-                    details = { destination: pick(['Canteen', 'Medical', 'HR', 'Finance', 'IT', 'External']),
-                        approvedBy: pick(USERS).staffId, exitCategory: pick(['Internal', 'External']) };
-                } else if (activity === 'Return') {
-                    details = { returnedFrom: pick(['Canteen', 'Medical', 'HR', 'Finance', 'IT', 'External']),
-                        returnedBy: pick(USERS).staffId };
-                }
-
-                reports.push({
-                    id: i + 1,
-                    staffId: user.staffId,
-                    staffName: user.firstName + ' ' + user.lastName,
-                    department: user.department,
-                    role: user.role,
-                    location: location,
+                const shift = getShiftNameForDate(date);
+                const status = pick(passStatuses);
+                records.push({
+                    id: 'P' + String(i + 1).padStart(4, '0'),
+                    type: 'pass',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: 'Changing Room Beat',
                     shift: shift,
-                    activity: activity,
                     date: formatDate(date),
                     time: formatTime(date),
                     dateTime: formatDateTime(date),
                     status: status,
-                    details: details,
-                    // extra fields for display
-                    rawDate: date,
+                    details: {
+                        passType: pick(['Internal', 'External']),
+                        issuedBy: pick(STAFF).staffId,
+                        returnedDate: status === 'returned' ? formatDateTime(new Date(date.getTime() + rand(3600000,
+                            7200000))) : null,
+                        closedDate: status === 'closed' ? formatDateTime(new Date(date.getTime() + rand(7200000,
+                            14400000))) : null,
+                    }
                 });
             }
-            // sort by date descending
-            reports.sort((a, b) => b.rawDate - a.rawDate);
-            return reports;
+
+            // 2. Visitors (only at Manager's Entrance)
+            for (let i = 0; i < Math.floor(count * 0.25); i++) {
+                const dept = pick(DEPARTMENTS);
+                const visitorName = 'Visitor ' + pick(['A', 'B', 'C', 'D', 'E']) + rand(10, 99);
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                const checkIn = new Date(date);
+                checkIn.setHours(rand(8, 12), rand(0, 59), 0);
+                const checkOut = new Date(checkIn);
+                checkOut.setHours(checkIn.getHours() + rand(1, 4), rand(0, 59), 0);
+                records.push({
+                    id: 'V' + String(i + 1).padStart(4, '0'),
+                    type: 'visitor',
+                    staffId: null,
+                    staffName: visitorName,
+                    department: dept.name,
+                    unit: 'Visitor',
+                    location: 'Manager\'s Entrance',
+                    shift: shift,
+                    date: formatDate(checkIn),
+                    time: formatTime(checkIn),
+                    dateTime: formatDateTime(checkIn),
+                    status: 'checked-in',
+                    details: {
+                        checkInTime: formatDateTime(checkIn),
+                        checkOutTime: formatDateTime(checkOut),
+                        purpose: pick(['Meeting', 'Interview', 'Delivery', 'Inspection']),
+                        host: pick(STAFF).staffId,
+                    }
+                });
+            }
+
+            // 3. Staff Check-In/Out (both Manager's Entrance and Changing Room Beat)
+            for (let i = 0; i < Math.floor(count * 0.3); i++) {
+                const staff = getStaff();
+                const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                const activity = pick(['Check-In', 'Check-Out']);
+                const checkTime = new Date(date);
+                if (activity === 'Check-In') {
+                    checkTime.setHours(rand(7, 12), rand(0, 59), 0);
+                } else {
+                    checkTime.setHours(rand(13, 18), rand(0, 59), 0);
+                }
+                records.push({
+                    id: 'S' + String(i + 1).padStart(4, '0'),
+                    type: 'staff',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: loc,
+                    shift: shift,
+                    date: formatDate(checkTime),
+                    time: formatTime(checkTime),
+                    dateTime: formatDateTime(checkTime),
+                    status: activity === 'Check-In' ? 'in' : 'out',
+                    details: {
+                        activity: activity,
+                        checkedBy: pick(STAFF).staffId,
+                    }
+                });
+            }
+
+            // 4. Incidents & Relief (both Manager's Entrance and Changing Room Beat)
+            for (let i = 0; i < Math.floor(count * 0.15); i++) {
+                const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                const incidentTime = new Date(date);
+                incidentTime.setHours(rand(8, 20), rand(0, 59), 0);
+                const reliefStart = new Date(incidentTime);
+                reliefStart.setMinutes(reliefStart.getMinutes() + rand(10, 30));
+                const reliefEnd = new Date(reliefStart);
+                reliefEnd.setMinutes(reliefEnd.getMinutes() + rand(10, 30));
+                const staff = getStaff();
+                records.push({
+                    id: 'I' + String(i + 1).padStart(4, '0'),
+                    type: 'incident',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: loc,
+                    shift: shift,
+                    date: formatDate(incidentTime),
+                    time: formatTime(incidentTime),
+                    dateTime: formatDateTime(incidentTime),
+                    status: 'reported',
+                    details: {
+                        incidentType: pick(['Security breach', 'Medical', 'Fire', 'Dispute', 'Equipment failure']),
+                        incidentTime: formatDateTime(incidentTime),
+                        reliefOfficer: pick(STAFF).staffId,
+                        reliefStart: formatDateTime(reliefStart),
+                        reliefEnd: formatDateTime(reliefEnd),
+                        description: 'Incident occurred at ' + loc + '. Relief provided by ' + pick(STAFF).firstName +
+                            '.',
+                    }
+                });
+            }
+
+            // Sort by date descending
+            records.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+            return records;
         }
 
         // ============================================================
         //  2.  STATE
         // ============================================================
 
-        let allReports = generateReports(65);
-        let filteredReports = [...allReports];
+        let allRecords = generateRecords(120);
+        let filteredRecords = [...allRecords];
         let currentView = 'grouped';
-        let currentModalReport = null;
+        let currentModalRecord = null;
 
         // ============================================================
         //  3.  DOM REFS
         // ============================================================
 
         const $ = (id) => document.getElementById(id);
+        const reportType = $('reportType');
         const filterShift = $('filterShift');
         const filterLocation = $('filterLocation');
-        const filterActivity = $('filterActivity');
-        const filterUser = $('filterUser');
+        const filterDepartment = $('filterDepartment');
         const filterDateFrom = $('filterDateFrom');
         const filterDateTo = $('filterDateTo');
         const applyBtn = $('applyFilters');
@@ -873,43 +1043,42 @@
         const modalPdfBtn = $('modalPdfBtn');
         const reportCount = $('reportCount');
         const statTotal = $('statTotal');
-        const statCheckIn = $('statCheckIn');
-        const statCheckOut = $('statCheckOut');
-        const statExits = $('statExits');
-        const statReturns = $('statReturns');
+        const statPassIssued = $('statPassIssued');
+        const statVisitors = $('statVisitors');
+        const statStaffIn = $('statStaffIn');
+        const statIncidents = $('statIncidents');
         const exportPdfAll = $('exportPdfAll');
 
-        // ============================================================
-        //  4.  POPULATE USER FILTER
+/ ============================================================
+        //  4.  POPULATE FILTER DROPDOWNS
         // ============================================================
 
-        function populateUserFilter() {
-            const unique = {};
-            allReports.forEach(r => { unique[r.staffId] = r.staffName; });
-            filterUser.innerHTML = '<option value="">All Users</option>';
-            Object.entries(unique).sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
-                filterUser.innerHTML += `<option value="${id}">${name}</option>`;
+        function populateDepartmentFilter() {
+            const depts = [...new Set(allRecords.map(r => r.department))].sort();
+            filterDepartment.innerHTML = '<option value="">All Departments</option>';
+            depts.forEach(d => {
+                filterDepartment.innerHTML += `<option value="${d}">${d}</option>`;
             });
         }
-        populateUserFilter();
+        populateDepartmentFilter();
 
         // ============================================================
         //  5.  FILTER LOGIC
         // ============================================================
 
         function applyFilters() {
+            const type = reportType.value;
             const shift = filterShift.value;
             const location = filterLocation.value;
-            const activity = filterActivity.value;
-            const userId = filterUser.value;
+            const dept = filterDepartment.value;
             const from = filterDateFrom.value;
             const to = filterDateTo.value;
 
-            filteredReports = allReports.filter(r => {
+            filteredRecords = allRecords.filter(r => {
+                if (type !== 'all' && r.type !== type) return false;
                 if (shift && r.shift !== shift) return false;
                 if (location && r.location !== location) return false;
-                if (activity && r.activity !== activity) return false;
-                if (userId && r.staffId !== userId) return false;
+                if (dept && r.department !== dept) return false;
                 if (from && r.date < from) return false;
                 if (to && r.date > to) return false;
                 return true;
@@ -918,13 +1087,13 @@
         }
 
         function resetFilters() {
+            reportType.value = 'all';
             filterShift.value = '';
             filterLocation.value = '';
-            filterActivity.value = '';
-            filterUser.value = '';
+            filterDepartment.value = '';
             filterDateFrom.value = '';
             filterDateTo.value = '';
-            filteredReports = [...allReports];
+            filteredRecords = [...allRecords];
             render();
         }
 
@@ -943,92 +1112,115 @@
         }
 
         function updateStats() {
-            const total = filteredReports.length;
-            const checkIns = filteredReports.filter(r => r.activity === 'Check-In').length;
-            const checkOuts = filteredReports.filter(r => r.activity === 'Check-Out').length;
-            const exits = filteredReports.filter(r => r.activity === 'Exit').length;
-            const returns = filteredReports.filter(r => r.activity === 'Return').length;
+            const total = filteredRecords.length;
+            const passIssued = filteredRecords.filter(r => r.type === 'pass' && r.status === 'issued').length;
+            const visitors = filteredRecords.filter(r => r.type === 'visitor').length;
+            const staffIn = filteredRecords.filter(r => r.type === 'staff' && r.status === 'in').length;
+            const incidents = filteredRecords.filter(r => r.type === 'incident').length;
             statTotal.textContent = total;
-            statCheckIn.textContent = checkIns;
-            statCheckOut.textContent = checkOuts;
-            statExits.textContent = exits;
-            statReturns.textContent = returns;
+            statPassIssued.textContent = passIssued;
+            statVisitors.textContent = visitors;
+            statStaffIn.textContent = staffIn;
+            statIncidents.textContent = incidents;
         }
 
         function updateReportCount() {
-            reportCount.textContent = filteredReports.length + ' Reports';
+            reportCount.textContent = filteredRecords.length + ' Records';
         }
 
-        // ---------- GROUPED ----------
+        // ---------- GROUPED (TREE) VIEW ----------
         function renderGrouped() {
-            groupedContainer.style.display = 'grid';
+            groupedContainer.style.display = 'block';
             tableContainer.style.display = 'none';
 
-            if (filteredReports.length === 0) {
+            if (filteredRecords.length === 0) {
                 groupedContainer.innerHTML = `
-              <div class="empty-state" style="grid-column:1/-1;">
+              <div class="empty-state">
                 <div class="big-icon">📭</div>
-                <h3>No reports match your filters</h3>
+                <h3>No records match your filters</h3>
                 <p>Try adjusting the filters above.</p>
               </div>
             `;
                 return;
             }
 
-            // Group by location + activity
-            const groups = {};
-            filteredReports.forEach(r => {
-                const key = r.location + '|' + r.activity;
-                if (!groups[key]) groups[key] = { location: r.location, activity: r.activity, items: [], count: 0 };
-                groups[key].items.push(r);
-                groups[key].count++;
+            // Build hierarchy: location -> department -> unit -> list of records
+            const tree = {};
+            filteredRecords.forEach(r => {
+                const loc = r.location;
+                const dept = r.department;
+                const unit = r.unit || 'General';
+                if (!tree[loc]) tree[loc] = {};
+                if (!tree[loc][dept]) tree[loc][dept] = {};
+                if (!tree[loc][dept][unit]) tree[loc][dept][unit] = [];
+                tree[loc][dept][unit].push(r);
             });
 
+            // Render recursively
             let html = '';
-            Object.values(groups).forEach(g => {
-                const iconMap = { 'Check-In': '⬇️', 'Check-Out': '⬆️', 'Exit': '🚪', 'Return': '🔄' };
-                const icon = iconMap[g.activity] || '📌';
-                const statusBadge = g.activity === 'Check-In' ? 'in' : g.activity === 'Check-Out' ? 'out' : g.activity ===
-                    'Exit' ? 'pending' : 'returned';
-                html += `
-              <div class="group-card">
-                <div class="group-title">${icon} ${g.activity}</div>
-                <div class="group-sub">📍 ${g.location}</div>
-                <div class="group-count">${g.count}</div>
-                <ul class="group-items">
-                  ${g.items.slice(0, 8).map(r => `
-                    <li>
-                      <span>${r.staffName}</span>
-                      <span>${r.date} ${r.time}</span>
-                    </li>
-                  `).join('')}
-                  ${g.items.length > 8 ? `<li style="color:#6b7d98;font-style:italic;">… and ${g.items.length - 8} more</li>` : ''}
-                </ul>
-                <button class="btn btn-sm btn-primary" style="margin-top:12px;width:100%;" onclick="viewGroup('${g.location}','${g.activity}')">
-                  View All (${g.count})
-                </button>
-              </div>
-            `;
-            });
+            for (const [loc, depts] of Object.entries(tree)) {
+                html += `<div class="group-node">`;
+                html +=
+                `<div class="node-header" onclick="toggleNode(this)"><span class="icon">📍</span><span class="label">${loc}</span><span class="count">${Object.values(depts).reduce((acc, u) => acc + Object.values(u).reduce((a, arr) => a + arr.length, 0), 0)}</span><button class="expand-btn">▼</button></div>`;
+                html += `<div class="node-children" style="display:block;">`;
+                for (const [dept, units] of Object.entries(depts)) {
+                    html += `<div class="group-node">`;
+                    html +=
+                    `<div class="node-header" onclick="toggleNode(this)"><span class="icon">🏢</span><span class="label">${dept}</span><span class="count">${Object.values(units).reduce((a, arr) => a + arr.length, 0)}</span><button class="expand-btn">▼</button></div>`;
+                    html += `<div class="node-children" style="display:block;">`;
+                    for (const [unit, records] of Object.entries(units)) {
+                        html += `<div class="group-node">`;
+                        html +=
+                        `<div class="node-header" onclick="toggleNode(this)"><span class="icon">👥</span><span class="label">${unit}</span><span class="count">${records.length}</span><button class="expand-btn">▼</button></div>`;
+                        html += `<div class="leaf-list" style="display:block;">`;
+                        records.forEach(r => {
+                            const statusMap = {
+                                'issued': 'Issued',
+                                'returned': 'Returned',
+                                'notreturned': 'Not Returned',
+                                'closed': 'Closed',
+                                'in': 'Check-In',
+                                'out': 'Check-Out',
+                                'checked-in': 'Checked-In',
+                                'reported': 'Reported'
+                            };
+                            const statusLabel = statusMap[r.status] || r.status;
+                            html += `
+                        <div class="leaf-item" onclick="openModal('${r.id}')" style="cursor:pointer;">
+                          <span><strong>${r.staffName || 'Visitor'}</strong> ${r.type === 'visitor' ? '(Visitor)' : ''} <span style="color:#6b7d98;">${r.date} ${r.time}</span></span>
+                          <span class="detail">${r.type} · ${statusLabel}</span>
+                        </div>
+                      `;
+                        });
+                        html += `</div>`;
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                html += `</div>`;
+            }
             groupedContainer.innerHTML = html;
         }
 
-        // viewGroup: filter the table to show only that group
-        window.viewGroup = function(location, activity) {
-            filterLocation.value = location;
-            filterActivity.value = activity;
-            currentView = 'table';
-            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-            document.querySelector('.view-toggle button[data-view="table"]').classList.add('active');
-            applyFilters();
+        // Toggle expand/collapse
+        window.toggleNode = function(header) {
+            const children = header.nextElementSibling;
+            if (children) {
+                const isHidden = children.style.display === 'none';
+                children.style.display = isHidden ? 'block' : 'none';
+                const btn = header.querySelector('.expand-btn');
+                if (btn) btn.textContent = isHidden ? '▼' : '▶';
+            }
         };
 
-        // ---------- TABLE ----------
+        // ---------- TABLE VIEW ----------
         function renderTable() {
             groupedContainer.style.display = 'none';
             tableContainer.style.display = 'block';
 
-            if (filteredReports.length === 0) {
+            if (filteredRecords.length === 0) {
                 tableBody.innerHTML = '';
                 tableEmpty.style.display = 'block';
                 return;
@@ -1036,26 +1228,32 @@
             tableEmpty.style.display = 'none';
 
             let html = '';
-            filteredReports.forEach((r, idx) => {
+            filteredRecords.forEach((r, idx) => {
                 const statusMap = {
-                    'in': '✅ In',
-                    'out': '❌ Out',
-                    'pending': '⏳ Pending',
-                    'approved': '✔️ Approved',
-                    'returned': '↩️ Returned'
+                    'issued': 'Issued',
+                    'returned': 'Returned',
+                    'notreturned': 'Not Returned',
+                    'closed': 'Closed',
+                    'in': 'Check-In',
+                    'out': 'Check-Out',
+                    'checked-in': 'Checked-In',
+                    'reported': 'Reported'
                 };
-                const statusClass = r.status;
+                const statusLabel = statusMap[r.status] || r.status;
+                const typeLabel = { pass: 'Pass', visitor: 'Visitor', staff: 'Staff', incident: 'Incident' } [r.type] || r
+                    .type;
                 html += `
-              <tr class="clickable" onclick="openModal(${r.id})">
+              <tr class="clickable" onclick="openModal('${r.id}')">
                 <td>${r.id}</td>
-                <td><strong>${r.staffName}</strong><br><span style="font-size:12px;color:#6b7d98;">${r.department}</span></td>
-                <td>${r.activity}</td>
+                <td>${typeLabel}</td>
+                <td><strong>${r.staffName || 'Visitor'}</strong></td>
+                <td>${r.department}</td>
                 <td>${r.location}</td>
                 <td>${r.shift}</td>
                 <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
-                <td><span class="badge-status ${statusClass}">${statusMap[r.status] || r.status}</span></td>
+                <td><span class="badge-status ${r.status}">${statusLabel}</span></td>
                 <td style="text-align:center;">
-                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf(${r.id})">📄 PDF</button>
+                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
                 </td>
               </tr>
             `;
@@ -1068,21 +1266,21 @@
         // ============================================================
 
         window.openModal = function(id) {
-            const report = filteredReports.find(r => r.id === id);
-            if (!report) return;
-            currentModalReport = report;
-            modalTitle.textContent = `Report #${report.id} — ${report.activity}`;
+            const record = filteredRecords.find(r => r.id === id);
+            if (!record) return;
+            currentModalRecord = record;
+            modalTitle.textContent = `Record #${record.id} — ${record.type.toUpperCase()}`;
 
-            const details = report.details || {};
+            const details = record.details || {};
             let detailRows = `
-            <div class="detail-row"><span class="label">Staff</span><span class="value">${report.staffName} (${report.staffId})</span></div>
-            <div class="detail-row"><span class="label">Department</span><span class="value">${report.department}</span></div>
-            <div class="detail-row"><span class="label">Role</span><span class="value">${report.role}</span></div>
-            <div class="detail-row"><span class="label">Location</span><span class="value">${report.location}</span></div>
-            <div class="detail-row"><span class="label">Shift</span><span class="value">${report.shift}</span></div>
-            <div class="detail-row"><span class="label">Activity</span><span class="value">${report.activity}</span></div>
-            <div class="detail-row"><span class="label">Date / Time</span><span class="value">${report.dateTime}</span></div>
-            <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${report.status}">${report.status}</span></span></div>
+            <div class="detail-row"><span class="label">Type</span><span class="value">${record.type}</span></div>
+            <div class="detail-row"><span class="label">Staff/Visitor</span><span class="value">${record.staffName || 'N/A'}</span></div>
+            <div class="detail-row"><span class="label">Department</span><span class="value">${record.department}</span></div>
+            <div class="detail-row"><span class="label">Unit</span><span class="value">${record.unit || 'N/A'}</span></div>
+            <div class="detail-row"><span class="label">Location</span><span class="value">${record.location}</span></div>
+            <div class="detail-row"><span class="label">Shift</span><span class="value">${record.shift}</span></div>
+            <div class="detail-row"><span class="label">Date / Time</span><span class="value">${record.dateTime}</span></div>
+            <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${record.status}">${record.status}</span></span></div>
           `;
 
             // Additional details
@@ -1102,7 +1300,7 @@
         function closeModal() {
             modalOverlay.classList.remove('open');
             document.body.style.overflow = '';
-            currentModalReport = null;
+            currentModalRecord = null;
         }
 
         modalClose.addEventListener('click', closeModal);
@@ -1118,7 +1316,6 @@
         //  8.  PDF EXPORT
         // ============================================================
 
-        // Helper to generate PDF from HTML content
         function generatePdfFromElement(element, filename = 'report.pdf') {
             const { jsPDF } = window.jspdf;
             html2canvas(element, {
@@ -1150,60 +1347,57 @@
             });
         }
 
-        // Export single report from table row
         window.exportSinglePdf = function(id) {
-            const report = filteredReports.find(r => r.id === id);
-            if (!report) return;
-            // Build a mini detail view
+            const record = filteredRecords.find(r => r.id === id);
+            if (!record) return;
             const div = document.createElement('div');
             div.style.padding = '24px';
             div.style.fontFamily = 'Segoe UI, sans-serif';
             div.style.maxWidth = '600px';
             div.style.margin = '0 auto';
             div.style.background = '#fff';
-            const d = report.details || {};
+            const d = record.details || {};
             let extra = '';
             Object.entries(d).forEach(([k, v]) => {
                 const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                 extra += `<p><strong>${label}:</strong> ${v}</p>`;
             });
             div.innerHTML = `
-            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Report</h2>
-            <p><strong>Report #:</strong> ${report.id}</p>
-            <p><strong>Staff:</strong> ${report.staffName} (${report.staffId})</p>
-            <p><strong>Department:</strong> ${report.department}</p>
-            <p><strong>Role:</strong> ${report.role}</p>
-            <p><strong>Location:</strong> ${report.location}</p>
-            <p><strong>Shift:</strong> ${report.shift}</p>
-            <p><strong>Activity:</strong> ${report.activity}</p>
-            <p><strong>Date / Time:</strong> ${report.dateTime}</p>
-            <p><strong>Status:</strong> ${report.status}</p>
+            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Record</h2>
+            <p><strong>ID:</strong> ${record.id}</p>
+            <p><strong>Type:</strong> ${record.type}</p>
+            <p><strong>Staff/Visitor:</strong> ${record.staffName || 'N/A'}</p>
+            <p><strong>Department:</strong> ${record.department}</p>
+            <p><strong>Unit:</strong> ${record.unit || 'N/A'}</p>
+            <p><strong>Location:</strong> ${record.location}</p>
+            <p><strong>Shift:</strong> ${record.shift}</p>
+            <p><strong>Date/Time:</strong> ${record.dateTime}</p>
+            <p><strong>Status:</strong> ${record.status}</p>
             ${extra}
             <p style="margin-top:20px;font-size:12px;color:#6b7d98;">Generated on ${new Date().toLocaleString()}</p>
           `;
             document.body.appendChild(div);
-            generatePdfFromElement(div, `Report_${report.id}_${report.staffId}.pdf`);
+            generatePdfFromElement(div, `Record_${record.id}.pdf`);
             setTimeout(() => div.remove(), 100);
         };
 
-        // Export all (current filtered view)
         exportPdfAll.addEventListener('click', function() {
-            if (filteredReports.length === 0) {
-                alert('No reports to export.');
+            if (filteredRecords.length === 0) {
+                alert('No records to export.');
                 return;
             }
-            // Build a full report table
             const div = document.createElement('div');
             div.style.padding = '24px';
             div.style.fontFamily = 'Segoe UI, sans-serif';
             div.style.background = '#fff';
             let rows = '';
-            filteredReports.forEach(r => {
+            filteredRecords.forEach(r => {
                 rows += `
               <tr>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.id}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.activity}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.type}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName || 'Visitor'}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.department}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.location}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.shift}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.date}</td>
@@ -1213,14 +1407,15 @@
             });
             div.innerHTML = `
             <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">📋 Physical Security — Full Report</h2>
-            <p><strong>Total Records:</strong> ${filteredReports.length}</p>
+            <p><strong>Total Records:</strong> ${filteredRecords.length}</p>
             <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
             <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
               <thead>
                 <tr style="background:#f0f4f8;">
-                  <th style="padding:8px 10px;text-align:left;">#</th>
-                  <th style="padding:8px 10px;text-align:left;">Staff</th>
-                  <th style="padding:8px 10px;text-align:left;">Activity</th>
+                  <th style="padding:8px 10px;text-align:left;">ID</th>
+                  <th style="padding:8px 10px;text-align:left;">Type</th>
+                  <th style="padding:8px 10px;text-align:left;">Name</th>
+                  <th style="padding:8px 10px;text-align:left;">Dept</th>
                   <th style="padding:8px 10px;text-align:left;">Location</th>
                   <th style="padding:8px 10px;text-align:left;">Shift</th>
                   <th style="padding:8px 10px;text-align:left;">Date</th>
@@ -1231,43 +1426,7 @@
             </table>
           `;
             document.body.appendChild(div);
-            generatePdfFromElement(div, `Security_Report_${formatDate(new Date())}.pdf`);
-            setTimeout(() => div.remove(), 100);
-        });
-
-        // Modal PDF
-        modalPdfBtn.addEventListener('click', function() {
-            if (!currentModalReport) return;
-            // Use the same logic as single export
-            const report = currentModalReport;
-            const div = document.createElement('div');
-            div.style.padding = '24px';
-            div.style.fontFamily = 'Segoe UI, sans-serif';
-            div.style.maxWidth = '600px';
-            div.style.margin = '0 auto';
-            div.style.background = '#fff';
-            const d = report.details || {};
-            let extra = '';
-            Object.entries(d).forEach(([k, v]) => {
-                const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-                extra += `<p><strong>${label}:</strong> ${v}</p>`;
-            });
-            div.innerHTML = `
-            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Report</h2>
-            <p><strong>Report #:</strong> ${report.id}</p>
-            <p><strong>Staff:</strong> ${report.staffName} (${report.staffId})</p>
-            <p><strong>Department:</strong> ${report.department}</p>
-            <p><strong>Role:</strong> ${report.role}</p>
-            <p><strong>Location:</strong> ${report.location}</p>
-            <p><strong>Shift:</strong> ${report.shift}</p>
-            <p><strong>Activity:</strong> ${report.activity}</p>
-            <p><strong>Date / Time:</strong> ${report.dateTime}</p>
-            <p><strong>Status:</strong> ${report.status}</p>
-            ${extra}
-            <p style="margin-top:20px;font-size:12px;color:#6b7d98;">Generated on ${new Date().toLocaleString()}</p>
-          `;
-            document.body.appendChild(div);
-            generatePdfFromElement(div, `Report_${report.id}_${report.staffId}.pdf`);
+            generatePdfFromElement(div, `Full_Report_${formatDate(new Date())}.pdf`);
             setTimeout(() => div.remove(), 100);
         });
 
@@ -1290,8 +1449,6 @@
 
         applyBtn.addEventListener('click', applyFilters);
         resetBtn.addEventListener('click', resetFilters);
-
-        // Enter key on filters
         document.querySelectorAll('.filter-group select, .filter-group input').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') applyFilters();
@@ -1304,11 +1461,9 @@
 
         render();
 
-        // Log sample data to console for inspection
-        console.log('🔐 Physical Security Dashboard initialized.');
-        console.log(`📊 ${allReports.length} reports loaded.`);
-        console.log('👥 Users:', USERS.length);
-        console.log('📋 Sample report:', allReports[0]);
+        console.log('🔐 Physical Security Dashboard (refined) initialized.');
+        console.log(`📊 ${allRecords.length} records loaded.`);
+        console.log('👥 Staff:', STAFF.length);
     </script>
 </body>
 </html>
