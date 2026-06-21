@@ -225,34 +225,6 @@
             background: #a93226;
         }
 
-        /* ---------- VIEW TOGGLE ---------- */
-        .view-toggle {
-            display: flex;
-            gap: 6px;
-            background: #eef2f7;
-            padding: 4px;
-            border-radius: 12px;
-        }
-        .view-toggle button {
-            padding: 6px 18px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            background: transparent;
-            color: #5a6f8a;
-            transition: 0.2s;
-        }
-        .view-toggle button.active {
-            background: #ffffff;
-            color: #1a3a6b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-        .view-toggle button:hover:not(.active) {
-            color: #1a2332;
-        }
-
         /* ---------- GROUPED (TREE) VIEW ---------- */
         .grouped-view {
             background: #ffffff;
@@ -412,6 +384,45 @@
         .badge-status.reported {
             background: #fdebd0;
             color: #9e6d1a;
+        }
+
+        /* ---------- PAGINATION ---------- */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            background: #fafcfe;
+            border-top: 1px solid #edf1f7;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 6px 14px;
+            border: 1px solid #dce2ea;
+            border-radius: 8px;
+            background: #ffffff;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #eef4fa;
+            border-color: #b0b8c5;
+        }
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination .page-info {
+            font-size: 14px;
+            color: #3d5068;
+            padding: 0 10px;
+        }
+        .pagination .active-page {
+            background: #1a3a6b;
+            color: #fff;
+            border-color: #1a3a6b;
         }
 
         /* ---------- MODAL ---------- */
@@ -578,10 +589,6 @@
             td {
                 padding: 10px 12px;
             }
-            .view-toggle button {
-                padding: 5px 12px;
-                font-size: 12px;
-            }
             .group-node .node-children {
                 margin-left: 12px;
                 padding-left: 8px;
@@ -589,6 +596,13 @@
             .leaf-list {
                 margin-left: 12px !important;
                 padding-left: 8px !important;
+            }
+            .pagination {
+                gap: 4px;
+            }
+            .pagination button {
+                padding: 4px 10px;
+                font-size: 12px;
             }
         }
         @media print {
@@ -700,20 +714,11 @@
             </div>
         </section>
 
-        <!-- VIEW TOGGLE -->
-        <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-            <div class="view-toggle">
-                <button class="active" data-view="grouped">📊 Grouped</button>
-                <button data-view="table">📋 Table</button>
-            </div>
-            <button class="btn btn-pdf btn-sm no-print" id="exportPdfAll">📄 Export All PDF</button>
-        </div>
-
-        <!-- GROUPED VIEW -->
+        <!-- GROUPED VIEW (always visible) -->
         <div id="groupedContainer" class="grouped-view"></div>
 
-        <!-- TABLE VIEW -->
-        <div id="tableContainer" class="table-wrap" style="display:none;">
+        <!-- TABLE VIEW with pagination -->
+        <div id="tableContainer" class="table-wrap">
             <div class="table-scroll">
                 <table>
                     <thead>
@@ -736,6 +741,12 @@
                 <div class="big-icon">📭</div>
                 <h3>No records match your filters</h3>
                 <p>Try adjusting the filters above.</p>
+            </div>
+            <!-- Pagination controls -->
+            <div class="pagination no-print" id="paginationControls">
+                <button id="prevPage" disabled>Previous</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button id="nextPage" disabled>Next</button>
             </div>
         </div>
 
@@ -1013,9 +1024,13 @@
         // ============================================================
 
         let allRecords = generateRecords(120);
-        let filteredRecords = [...allRecords];
-        let currentView = 'grouped';
+        // Always start with first 10 records as a sample (guaranteed to show data)
+        let filteredRecords = allRecords.slice(0, 10);
         let currentModalRecord = null;
+        // Pagination state
+        let currentPage = 1;
+        const pageSize = 10;
+        let totalPages = 1;
 
         // ============================================================
         //  3.  DOM REFS
@@ -1047,6 +1062,9 @@
         const statStaffIn = $('statStaffIn');
         const statIncidents = $('statIncidents');
         const exportPdfAll = $('exportPdfAll');
+        const prevPageBtn = $('prevPage');
+        const nextPageBtn = $('nextPage');
+        const pageInfo = $('pageInfo');
 
         // ============================================================
         //  4.  POPULATE FILTER DROPDOWNS
@@ -1062,7 +1080,7 @@
         populateDepartmentFilter();
 
         // ============================================================
-        //  5.  FILTER LOGIC (FIXED)
+        //  5.  FILTER LOGIC
         // ============================================================
 
         function applyFilters() {
@@ -1073,7 +1091,6 @@
             const from = filterDateFrom.value;
             const to = filterDateTo.value;
 
-            // Map display type to record type
             const typeMap = {
                 'passes': 'pass',
                 'visitors': 'visitor',
@@ -1092,6 +1109,7 @@
                 if (to && r.date > to) return false;
                 return true;
             });
+            currentPage = 1;
             render();
         }
 
@@ -1102,7 +1120,8 @@
             filterDepartment.value = '';
             filterDateFrom.value = '';
             filterDateTo.value = '';
-            filteredRecords = [...allRecords];
+            filteredRecords = allRecords.slice(0, 10); // back to sample
+            currentPage = 1;
             render();
         }
 
@@ -1113,11 +1132,8 @@
         function render() {
             updateStats();
             updateReportCount();
-            if (currentView === 'grouped') {
-                renderGrouped();
-            } else {
-                renderTable();
-            }
+            renderGrouped();
+            renderTableWithPagination();
         }
 
         function updateStats() {
@@ -1139,9 +1155,6 @@
 
         // ---------- GROUPED (TREE) VIEW ----------
         function renderGrouped() {
-            groupedContainer.style.display = 'block';
-            tableContainer.style.display = 'none';
-
             if (filteredRecords.length === 0) {
                 groupedContainer.innerHTML = `
               <div class="empty-state">
@@ -1165,7 +1178,6 @@
                 tree[loc][dept][unit].push(r);
             });
 
-            // Render recursively
             let html = '';
             for (const [loc, depts] of Object.entries(tree)) {
                 html += `<div class="group-node">`;
@@ -1224,12 +1236,22 @@
             }
         };
 
-        // ---------- TABLE VIEW ----------
-        function renderTable() {
-            groupedContainer.style.display = 'none';
-            tableContainer.style.display = 'block';
+        // ---------- TABLE WITH PAGINATION ----------
+        function renderTableWithPagination() {
+            const total = filteredRecords.length;
+            totalPages = Math.ceil(total / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
 
-            if (filteredRecords.length === 0) {
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, total);
+            const pageRecords = filteredRecords.slice(start, end);
+
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevPageBtn.disabled = (currentPage === 1);
+            nextPageBtn.disabled = (currentPage === totalPages);
+
+            if (total === 0) {
                 tableBody.innerHTML = '';
                 tableEmpty.style.display = 'block';
                 return;
@@ -1237,7 +1259,7 @@
             tableEmpty.style.display = 'none';
 
             let html = '';
-            filteredRecords.forEach((r, idx) => {
+            pageRecords.forEach((r, idx) => {
                 const statusMap = {
                     'issued': 'Issued',
                     'returned': 'Returned',
@@ -1269,6 +1291,20 @@
             });
             tableBody.innerHTML = html;
         }
+
+        // Pagination event listeners
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTableWithPagination();
+            }
+        });
+        nextPageBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTableWithPagination();
+            }
+        });
 
         // ============================================================
         //  7.  MODAL
@@ -1389,70 +1425,57 @@
             setTimeout(() => div.remove(), 100);
         };
 
-        exportPdfAll.addEventListener('click', function() {
-            if (filteredRecords.length === 0) {
-                alert('No records to export.');
-                return;
-            }
-            const div = document.createElement('div');
-            div.style.padding = '24px';
-            div.style.fontFamily = 'Segoe UI, sans-serif';
-            div.style.background = '#fff';
-            let rows = '';
-            filteredRecords.forEach(r => {
-                rows += `
-              <tr>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.id}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.type}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName || 'Visitor'}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.department}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.location}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.shift}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.date}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.status}</td>
-              </tr>
-            `;
-            });
-            div.innerHTML = `
-            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">📋 Physical Security — Full Report</h2>
-            <p><strong>Total Records:</strong> ${filteredRecords.length}</p>
-            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-            <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
-              <thead>
-                <tr style="background:#f0f4f8;">
-                  <th style="padding:8px 10px;text-align:left;">ID</th>
-                  <th style="padding:8px 10px;text-align:left;">Type</th>
-                  <th style="padding:8px 10px;text-align:left;">Name</th>
-                  <th style="padding:8px 10px;text-align:left;">Dept</th>
-                  <th style="padding:8px 10px;text-align:left;">Location</th>
-                  <th style="padding:8px 10px;text-align:left;">Shift</th>
-                  <th style="padding:8px 10px;text-align:left;">Date</th>
-                  <th style="padding:8px 10px;text-align:left;">Status</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          `;
-            document.body.appendChild(div);
-            generatePdfFromElement(div, `Full_Report_${formatDate(new Date())}.pdf`);
-            setTimeout(() => div.remove(), 100);
-        });
+        // exportPdfAll.addEventListener('click', function() {
+        //     if (filteredRecords.length === 0) {
+        //         alert('No records to export.');
+        //         return;
+        //     }
+        //     const div = document.createElement('div');
+        //     div.style.padding = '24px';
+        //     div.style.fontFamily = 'Segoe UI, sans-serif';
+        //     div.style.background = '#fff';
+        //     let rows = '';
+        //     filteredRecords.forEach(r => {
+        //         rows += `
+        //       <tr>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.id}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.type}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName || 'Visitor'}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.department}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.location}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.shift}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.date}</td>
+        //         <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.status}</td>
+        //       </tr>
+        //     `;
+        //     });
+        //     div.innerHTML = `
+        //     <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">📋 Physical Security — Full Report</h2>
+        //     <p><strong>Total Records:</strong> ${filteredRecords.length}</p>
+        //     <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+        //     <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
+        //       <thead>
+        //         <tr style="background:#f0f4f8;">
+        //           <th style="padding:8px 10px;text-align:left;">ID</th>
+        //           <th style="padding:8px 10px;text-align:left;">Type</th>
+        //           <th style="padding:8px 10px;text-align:left;">Name</th>
+        //           <th style="padding:8px 10px;text-align:left;">Dept</th>
+        //           <th style="padding:8px 10px;text-align:left;">Location</th>
+        //           <th style="padding:8px 10px;text-align:left;">Shift</th>
+        //           <th style="padding:8px 10px;text-align:left;">Date</th>
+        //           <th style="padding:8px 10px;text-align:left;">Status</th>
+        //         </tr>
+        //       </thead>
+        //       <tbody>${rows}</tbody>
+        //     </table>
+        //   `;
+        //     document.body.appendChild(div);
+        //     generatePdfFromElement(div, `Full_Report_${formatDate(new Date())}.pdf`);
+        //     setTimeout(() => div.remove(), 100);
+        // });
 
         // ============================================================
-        //  9.  VIEW TOGGLE
-        // ============================================================
-
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentView = this.dataset.view;
-                render();
-            });
-        });
-
-        // ============================================================
-        //  10. EVENT BINDING
+        //  9.  EVENT BINDING
         // ============================================================
 
         applyBtn.addEventListener('click', applyFilters);
@@ -1464,13 +1487,13 @@
         });
 
         // ============================================================
-        //  11. INIT
+        //  10. INIT
         // ============================================================
 
         render();
 
         console.log('🔐 Physical Security Dashboard (refined) initialized.');
-        console.log(`📊 ${allRecords.length} records loaded.`);
+        console.log(`📊 ${allRecords.length} total records. Showing first ${filteredRecords.length} as sample.`);
         console.log('👥 Staff:', STAFF.length);
     </script>
 </body>
