@@ -293,6 +293,12 @@
             font-weight: 600;
             color: #1a3a6b;
         }
+        .group-node .node-header .sub-count {
+            font-size: 12px;
+            color: #5a6f8a;
+            margin-left: 8px;
+            font-weight: 400;
+        }
         .group-node .node-children {
             margin-left: 24px;
             border-left: 2px dashed #dce2ea;
@@ -303,6 +309,9 @@
         }
         .group-node .node-children .node-children .node-header {
             border-left-color: #9ab0c4;
+        }
+        .group-node .node-children .node-children .node-children .node-header {
+            border-left-color: #b8c8d8;
         }
         .group-node .leaf-list {
             margin-left: 24px;
@@ -336,6 +345,40 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 24px;
+        }
+        .table-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px 16px;
+            border-top: 1px solid #edf1f7;
+            flex-wrap: wrap;
+        }
+        .table-pagination .page-info {
+            font-size: 13px;
+            color: #5a6f8a;
+            font-weight: 500;
+        }
+        .table-pagination .page-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .table-pagination select {
+            padding: 6px 10px;
+            border: 1.5px solid #dce2ea;
+            border-radius: 8px;
+            background: #fafcfe;
+            color: #1a2332;
+            font-size: 13px;
+        }
+        .table-pagination .btn[disabled] {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .table-scroll {
             overflow-x: auto;
@@ -412,6 +455,10 @@
         .badge-status.reported {
             background: #fdebd0;
             color: #9e6d1a;
+        }
+        .badge-status.completed {
+            background: #d5f5e3;
+            color: #1a6a3a;
         }
 
         /* ---------- MODAL ---------- */
@@ -655,11 +702,22 @@
             <div class="filter-group">
                 <label>Report Type</label>
                 <select id="reportType">
-                    <option value="passes">Passes (Changing Room)</option>
-                    <option value="visitors">Visitors (Manager's Entrance)</option>
-                    <option value="staff">Staff Check‑In/Out</option>
-                    <option value="incidents">Incidents & Relief</option>
-                    <option value="all" selected>All Combined</option>
+                    <option value="all">All Combined</option>
+                    <option value="checkinout">Checked‑In/Out</option>
+                    <option value="passout">Pass Out</option>
+                    <option value="visitors">Visitors into Factory</option>
+                    <option value="material">Monthly Search/Escort</option>
+                    <option value="cbn">CBN Evacuation</option>
+                    <option value="security">Security Documents</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Recurrence</label>
+                <select id="recurrence">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom" selected>Custom Range</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -672,9 +730,9 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Location</label>
-                <select id="filterLocation">
-                    <option value="">All Locations</option>
+                <label>Beat</label>
+                <select id="filterBeat">
+                    <option value="">All Beats</option>
                     <option value="Manager's Entrance">Manager's Entrance</option>
                     <option value="Changing Room Beat">Changing Room Beat</option>
                     <option value="Gate House">Gate House</option>
@@ -716,21 +774,22 @@
         <div id="tableContainer" class="table-wrap" style="display:none;">
             <div class="table-scroll">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Type</th>
-                            <th>Staff/Visitor</th>
-                            <th>Department</th>
-                            <th>Location</th>
-                            <th>Shift</th>
-                            <th>Date / Time</th>
-                            <th>Status</th>
-                            <th style="text-align:center;">Actions</th>
-                        </tr>
-                    </thead>
+                    <thead id="tableHead"></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
+            </div>
+            <div id="tablePagination" class="table-pagination" style="display:none;">
+                <div class="page-info" id="tablePageInfo"></div>
+                <div class="page-controls">
+                    <label for="rowsPerPage" style="font-size:13px;color:#5a6f8a;font-weight:500;">Rows</label>
+                    <select id="rowsPerPage">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" id="prevPageBtn">Previous</button>
+                    <button class="btn btn-outline btn-sm" id="nextPageBtn">Next</button>
+                </div>
             </div>
             <div id="tableEmpty" class="empty-state" style="display:none;">
                 <div class="big-icon">📭</div>
@@ -872,7 +931,7 @@
 
             // 1. Passes (only at Changing Room Beat)
             const passStatuses = ['issued', 'returned', 'notreturned', 'closed'];
-            for (let i = 0; i < Math.floor(count * 0.3); i++) {
+            for (let i = 0; i < Math.floor(count * 0.2); i++) {
                 const staff = getStaff();
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
@@ -901,8 +960,8 @@
                 });
             }
 
-            // 2. Visitors (only at Manager's Entrance)
-            for (let i = 0; i < Math.floor(count * 0.25); i++) {
+            // 2. Visitors (only at Manager's Entrance) – for check-in/out
+            for (let i = 0; i < Math.floor(count * 0.2); i++) {
                 const dept = pick(DEPARTMENTS);
                 const visitorName = 'Visitor ' + pick(['A', 'B', 'C', 'D', 'E']) + rand(10, 99);
                 const date = randomDate(start, end);
@@ -931,10 +990,11 @@
                         host: pick(STAFF).staffId,
                     }
                 });
+                // Also add a checked-out record? We'll keep as separate records.
             }
 
             // 3. Staff Check-In/Out (both Manager's Entrance and Changing Room Beat)
-            for (let i = 0; i < Math.floor(count * 0.3); i++) {
+            for (let i = 0; i < Math.floor(count * 0.25); i++) {
                 const staff = getStaff();
                 const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
                 const date = randomDate(start, end);
@@ -967,7 +1027,7 @@
             }
 
             // 4. Incidents & Relief (both Manager's Entrance and Changing Room Beat)
-            for (let i = 0; i < Math.floor(count * 0.15); i++) {
+            for (let i = 0; i < Math.floor(count * 0.1); i++) {
                 const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
@@ -1003,6 +1063,87 @@
                 });
             }
 
+            // 5. Material Search (monthly form)
+            for (let i = 0; i < Math.floor(count * 0.08); i++) {
+                const staff = getStaff();
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                records.push({
+                    id: 'M' + String(i + 1).padStart(4, '0'),
+                    type: 'material',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: pick(['Manager\'s Entrance', 'Changing Room Beat']),
+                    shift: shift,
+                    date: formatDate(date),
+                    time: formatTime(date),
+                    dateTime: formatDateTime(date),
+                    status: 'completed',
+                    details: {
+                        materialType: pick(['Paper', 'Metal', 'Plastic', 'Glass', 'Electronics']),
+                        quantityWeight: rand(10, 500) + ' kg',
+                        searchDuration: rand(30, 120) + ' mins',
+                        disposalMethod: pick(['Recycle', 'Incinerate', 'Landfill']),
+                    }
+                });
+            }
+
+            // 6. CBN Evacuation (monthly form)
+            for (let i = 0; i < Math.floor(count * 0.05); i++) {
+                const staff = getStaff();
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                records.push({
+                    id: 'C' + String(i + 1).padStart(4, '0'),
+                    type: 'cbn',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: 'Changing Room Beat',
+                    shift: shift,
+                    date: formatDate(date),
+                    time: formatTime(date),
+                    dateTime: formatDateTime(date),
+                    status: 'completed',
+                    details: {
+                        denomination: pick(['1000', '500', '200', '100']),
+                        amount: rand(1000, 10000) + ' notes',
+                        evacuationOfficer: pick(STAFF).staffId,
+                        vehicleReg: pick(['ABC-123', 'XYZ-789', 'LMN-456']),
+                    }
+                });
+            }
+
+            // 7. Security Documents (monthly form)
+            for (let i = 0; i < Math.floor(count * 0.05); i++) {
+                const staff = getStaff();
+                const date = randomDate(start, end);
+                const shift = getShiftNameForDate(date);
+                records.push({
+                    id: 'D' + String(i + 1).padStart(4, '0'),
+                    type: 'security',
+                    staffId: staff.staffId,
+                    staffName: staff.firstName + ' ' + staff.lastName,
+                    department: staff.department,
+                    unit: staff.unit,
+                    location: pick(['Manager\'s Entrance', 'Changing Room Beat']),
+                    shift: shift,
+                    date: formatDate(date),
+                    time: formatTime(date),
+                    dateTime: formatDateTime(date),
+                    status: 'completed',
+                    details: {
+                        docType: pick(['Classified', 'Confidential', 'Internal']),
+                        destination: pick(['Archive', 'External Office', 'Secure Vault']),
+                        escortOfficer: pick(STAFF).staffId,
+                        deliveryTime: formatDateTime(new Date(date.getTime() + rand(3600000, 7200000))),
+                    }
+                });
+            }
+
             // Sort by date descending
             records.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
             return records;
@@ -1016,6 +1157,8 @@
         let filteredRecords = [...allRecords];
         let currentView = 'grouped';
         let currentModalRecord = null;
+        let currentTablePage = 1;
+        let rowsPerPageValue = 20;
 
         // ============================================================
         //  3.  DOM REFS
@@ -1023,8 +1166,9 @@
 
         const $ = (id) => document.getElementById(id);
         const reportType = $('reportType');
+        const recurrence = $('recurrence');
         const filterShift = $('filterShift');
-        const filterLocation = $('filterLocation');
+        const filterBeat = $('filterBeat');
         const filterDepartment = $('filterDepartment');
         const filterDateFrom = $('filterDateFrom');
         const filterDateTo = $('filterDateTo');
@@ -1032,8 +1176,14 @@
         const resetBtn = $('resetFilters');
         const groupedContainer = $('groupedContainer');
         const tableContainer = $('tableContainer');
+        const tableHead = $('tableHead');
         const tableBody = $('tableBody');
         const tableEmpty = $('tableEmpty');
+        const tablePagination = $('tablePagination');
+        const tablePageInfo = $('tablePageInfo');
+        const rowsPerPage = $('rowsPerPage');
+        const prevPageBtn = $('prevPageBtn');
+        const nextPageBtn = $('nextPageBtn');
         const modalOverlay = $('modalOverlay');
         const modalBody = $('modalBody');
         const modalTitle = $('modalTitle');
@@ -1062,47 +1212,55 @@
         populateDepartmentFilter();
 
         // ============================================================
-        //  5.  FILTER LOGIC (FIXED)
+        //  5.  FILTER LOGIC
         // ============================================================
 
         function applyFilters() {
             const type = reportType.value;
             const shift = filterShift.value;
-            const location = filterLocation.value;
+            const beat = filterBeat.value;
             const dept = filterDepartment.value;
             const from = filterDateFrom.value;
             const to = filterDateTo.value;
 
-            // Map display type to record type
-            const typeMap = {
-                'passes': 'pass',
-                'visitors': 'visitor',
-                'staff': 'staff',
-                'incidents': 'incident',
-                'all': 'all'
-            };
-            const typeValue = typeMap[type] || 'all';
+            // Map display type to record type(s)
+            let allowedTypes = [];
+            if (type === 'all') allowedTypes = ['pass', 'visitor', 'staff', 'incident', 'material', 'cbn', 'security'];
+            else if (type === 'checkinout') allowedTypes = ['staff', 'visitor'];
+            else if (type === 'passout') allowedTypes = ['pass'];
+            else if (type === 'visitors') allowedTypes = ['visitor'];
+            else if (type === 'material') allowedTypes = ['material'];
+            else if (type === 'cbn') allowedTypes = ['cbn'];
+            else if (type === 'security') allowedTypes = ['security'];
 
+            // Business rules: Pass only at Changing Room Beat
             filteredRecords = allRecords.filter(r => {
-                if (typeValue !== 'all' && r.type !== typeValue) return false;
+                if (!allowedTypes.includes(r.type)) return false;
                 if (shift && r.shift !== shift) return false;
-                if (location && r.location !== location) return false;
+                if (beat && r.location !== beat) return false;
                 if (dept && r.department !== dept) return false;
                 if (from && r.date < from) return false;
                 if (to && r.date > to) return false;
+                // Passes only at Changing Room Beat
+                if (r.type === 'pass' && r.location !== 'Changing Room Beat') return false;
+                // Visitors only at Manager's Entrance
+                if (r.type === 'visitor' && r.location !== 'Manager\'s Entrance') return false;
                 return true;
             });
+            currentTablePage = 1;
             render();
         }
 
         function resetFilters() {
             reportType.value = 'all';
+            recurrence.value = 'custom';
             filterShift.value = '';
-            filterLocation.value = '';
+            filterBeat.value = '';
             filterDepartment.value = '';
             filterDateFrom.value = '';
             filterDateTo.value = '';
             filteredRecords = [...allRecords];
+            currentTablePage = 1;
             render();
         }
 
@@ -1153,54 +1311,77 @@
                 return;
             }
 
-            // Build hierarchy: location -> department -> unit -> list of records
+            // Determine hierarchy based on report type
+            const type = reportType.value;
+            // For monthly forms, we show aggregated summary cards instead of tree
+            if (type === 'material' || type === 'cbn' || type === 'security') {
+                renderMonthlySummary(type);
+                return;
+            }
+
+            // Build hierarchy: Beat -> Shift -> Department -> Unit -> records
             const tree = {};
             filteredRecords.forEach(r => {
-                const loc = r.location;
+                const beat = r.location;
+                const shift = r.shift;
                 const dept = r.department;
                 const unit = r.unit || 'General';
-                if (!tree[loc]) tree[loc] = {};
-                if (!tree[loc][dept]) tree[loc][dept] = {};
-                if (!tree[loc][dept][unit]) tree[loc][dept][unit] = [];
-                tree[loc][dept][unit].push(r);
+                if (!tree[beat]) tree[beat] = {};
+                if (!tree[beat][shift]) tree[beat][shift] = {};
+                if (!tree[beat][shift][dept]) tree[beat][shift][dept] = {};
+                if (!tree[beat][shift][dept][unit]) tree[beat][shift][dept][unit] = [];
+                tree[beat][shift][dept][unit].push(r);
             });
 
-            // Render recursively
             let html = '';
-            for (const [loc, depts] of Object.entries(tree)) {
+            for (const [beat, shifts] of Object.entries(tree)) {
                 html += `<div class="group-node">`;
                 html +=
-                `<div class="node-header" onclick="toggleNode(this)"><span class="icon">📍</span><span class="label">${loc}</span><span class="count">${Object.values(depts).reduce((acc, u) => acc + Object.values(u).reduce((a, arr) => a + arr.length, 0), 0)}</span><button class="expand-btn">▼</button></div>`;
-                html += `<div class="node-children" style="display:block;">`;
-                for (const [dept, units] of Object.entries(depts)) {
+                `<div class="node-header" onclick="toggleNode(this)"><span class="icon">📍</span><span class="label">${beat}</span><span class="count">${Object.values(shifts).reduce((acc, depts) => acc + Object.values(depts).reduce((a, units) => a + Object.values(units).reduce((b, arr) => b + arr.length, 0), 0), 0)}</span><button class="expand-btn">▶</button></div>`;
+                html += `<div class="node-children" style="display:none;">`;
+                for (const [shift, depts] of Object.entries(shifts)) {
                     html += `<div class="group-node">`;
                     html +=
-                    `<div class="node-header" onclick="toggleNode(this)"><span class="icon">🏢</span><span class="label">${dept}</span><span class="count">${Object.values(units).reduce((a, arr) => a + arr.length, 0)}</span><button class="expand-btn">▼</button></div>`;
-                    html += `<div class="node-children" style="display:block;">`;
-                    for (const [unit, records] of Object.entries(units)) {
+                    `<div class="node-header" onclick="toggleNode(this)"><span class="icon">🕒</span><span class="label">${shift}</span><span class="count">${Object.values(depts).reduce((a, units) => a + Object.values(units).reduce((b, arr) => b + arr.length, 0), 0)}</span><button class="expand-btn">▶</button></div>`;
+                    html += `<div class="node-children" style="display:none;">`;
+                    for (const [dept, units] of Object.entries(depts)) {
                         html += `<div class="group-node">`;
                         html +=
-                        `<div class="node-header" onclick="toggleNode(this)"><span class="icon">👥</span><span class="label">${unit}</span><span class="count">${records.length}</span><button class="expand-btn">▼</button></div>`;
-                        html += `<div class="leaf-list" style="display:block;">`;
-                        records.forEach(r => {
-                            const statusMap = {
-                                'issued': 'Issued',
-                                'returned': 'Returned',
-                                'notreturned': 'Not Returned',
-                                'closed': 'Closed',
-                                'in': 'Check-In',
-                                'out': 'Check-Out',
-                                'checked-in': 'Checked-In',
-                                'reported': 'Reported'
-                            };
-                            const statusLabel = statusMap[r.status] || r.status;
-                            html += `
-                        <div class="leaf-item" onclick="openModal('${r.id}')" style="cursor:pointer;">
-                          <span><strong>${r.staffName || 'Visitor'}</strong> ${r.type === 'visitor' ? '(Visitor)' : ''} <span style="color:#6b7d98;">${r.date} ${r.time}</span></span>
-                          <span class="detail">${r.type} · ${statusLabel}</span>
-                        </div>
-                      `;
-                        });
+                        `<div class="node-header" onclick="toggleNode(this)"><span class="icon">🏢</span><span class="label">${dept}</span><span class="count">${Object.values(units).reduce((a, arr) => a + arr.length, 0)}</span><button class="expand-btn">▶</button></div>`;
+                        html += `<div class="node-children" style="display:none;">`;
+                        for (const [unit, records] of Object.entries(units)) {
+                            html += `<div class="group-node">`;
+                            html +=
+                            `<div class="node-header" onclick="toggleNode(this)"><span class="icon">👥</span><span class="label">${unit}</span><span class="count">${records.length}</span><button class="expand-btn">▶</button></div>`;
+                            html += `<div class="leaf-list" style="display:none;">`;
+                            records.forEach(r => {
+                                const statusMap = {
+                                    'issued': 'Issued',
+                                    'returned': 'Returned',
+                                    'notreturned': 'Not Returned',
+                                    'closed': 'Closed',
+                                    'in': 'Check-In',
+                                    'out': 'Check-Out',
+                                    'checked-in': 'Checked-In',
+                                    'reported': 'Reported',
+                                    'completed': 'Completed'
+                                };
+                                const statusLabel = statusMap[r.status] || r.status;
+                                // For passes, show pass type and status
+                                let extra = '';
+                                if (r.type === 'pass') {
+                                    extra = r.details?.passType || '';
+                                }
+                                html += `
+                            <div class="leaf-item" onclick="openModal('${r.id}')" style="cursor:pointer;">
+                              <span><strong>${r.staffName || 'Visitor'}</strong> ${r.type === 'visitor' ? '(Visitor)' : ''} <span style="color:#6b7d98;">${r.date} ${r.time}</span> ${extra ? '· '+extra : ''}</span>
+                              <span class="detail">${r.type} · ${statusLabel}</span>
+                            </div>
+                          `;
+                            });
+                            html += `</div>`;
+                            html += `</div>`;
+                        }
                         html += `</div>`;
                         html += `</div>`;
                     }
@@ -1210,6 +1391,41 @@
                 html += `</div>`;
                 html += `</div>`;
             }
+            groupedContainer.innerHTML = html;
+        }
+
+        // Monthly summary cards
+        function renderMonthlySummary(type) {
+            // Aggregate data
+            const agg = {};
+            filteredRecords.forEach(r => {
+                const key = r.details?.materialType || r.details?.denomination || r.details?.docType || 'Other';
+                if (!agg[key]) agg[key] = { count: 0, total: 0 };
+                agg[key].count++;
+                // For material, sum quantity weight (convert to number)
+                if (type === 'material' && r.details?.quantityWeight) {
+                    const num = parseFloat(r.details.quantityWeight);
+                    if (!isNaN(num)) agg[key].total += num;
+                }
+                // For CBN, sum amount (notes)
+                if (type === 'cbn' && r.details?.amount) {
+                    const num = parseFloat(r.details.amount);
+                    if (!isNaN(num)) agg[key].total += num;
+                }
+                // For security, just count
+            });
+
+            let html = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">`;
+            for (const [key, data] of Object.entries(agg)) {
+                html += `
+              <div style="background:#f8faff;padding:16px;border-radius:12px;border-left:4px solid #1a3a6b;">
+                <div style="font-weight:600;font-size:16px;">${key}</div>
+                <div style="font-size:28px;font-weight:700;color:#1a3a6b;">${data.count}</div>
+                <div style="font-size:13px;color:#5a6f8a;">${type === 'material' ? 'Total Weight: '+data.total.toFixed(0)+' kg' : type === 'cbn' ? 'Total Notes: '+data.total.toFixed(0) : 'Total Entries'}</div>
+              </div>
+            `;
+            }
+            html += `</div>`;
             groupedContainer.innerHTML = html;
         }
 
@@ -1232,42 +1448,127 @@
             if (filteredRecords.length === 0) {
                 tableBody.innerHTML = '';
                 tableEmpty.style.display = 'block';
+                tableHead.innerHTML = '';
+                tablePagination.style.display = 'none';
                 return;
             }
             tableEmpty.style.display = 'none';
 
-            let html = '';
-            filteredRecords.forEach((r, idx) => {
-                const statusMap = {
-                    'issued': 'Issued',
-                    'returned': 'Returned',
-                    'notreturned': 'Not Returned',
-                    'closed': 'Closed',
-                    'in': 'Check-In',
-                    'out': 'Check-Out',
-                    'checked-in': 'Checked-In',
-                    'reported': 'Reported'
-                };
-                const statusLabel = statusMap[r.status] || r.status;
-                const typeLabel = { pass: 'Pass', visitor: 'Visitor', staff: 'Staff', incident: 'Incident' } [r.type] || r
-                    .type;
-                html += `
-              <tr class="clickable" onclick="openModal('${r.id}')">
+            const type = reportType.value;
+            let headers = [];
+            let rowRenderer = null;
+
+            if (type === 'material') {
+                headers = ['ID', 'Material Type', 'Quantity/Weight', 'Department', 'Beat', 'Shift', 'Date', 'Status',
+                    'Actions'
+                ];
+                rowRenderer = (r) => `
                 <td>${r.id}</td>
-                <td>${typeLabel}</td>
-                <td><strong>${r.staffName || 'Visitor'}</strong></td>
+                <td>${r.details?.materialType || 'N/A'}</td>
+                <td>${r.details?.quantityWeight || 'N/A'}</td>
                 <td>${r.department}</td>
                 <td>${r.location}</td>
                 <td>${r.shift}</td>
                 <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
-                <td><span class="badge-status ${r.status}">${statusLabel}</span></td>
+                <td><span class="badge-status ${r.status}">${r.status}</span></td>
                 <td style="text-align:center;">
                   <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
                 </td>
-              </tr>
-            `;
+              `;
+            } else if (type === 'cbn') {
+                headers = ['ID', 'Denomination', 'Amount', 'Vehicle', 'Department', 'Beat', 'Shift', 'Date', 'Status',
+                    'Actions'
+                ];
+                rowRenderer = (r) => `
+                <td>${r.id}</td>
+                <td>${r.details?.denomination || 'N/A'}</td>
+                <td>${r.details?.amount || 'N/A'}</td>
+                <td>${r.details?.vehicleReg || 'N/A'}</td>
+                <td>${r.department}</td>
+                <td>${r.location}</td>
+                <td>${r.shift}</td>
+                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                <td><span class="badge-status ${r.status}">${r.status}</span></td>
+                <td style="text-align:center;">
+                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                </td>
+              `;
+            } else if (type === 'security') {
+                headers = ['ID', 'Document Type', 'Destination', 'Escort', 'Department', 'Beat', 'Shift', 'Date', 'Status',
+                    'Actions'
+                ];
+                rowRenderer = (r) => `
+                <td>${r.id}</td>
+                <td>${r.details?.docType || 'N/A'}</td>
+                <td>${r.details?.destination || 'N/A'}</td>
+                <td>${r.details?.escortOfficer || 'N/A'}</td>
+                <td>${r.department}</td>
+                <td>${r.location}</td>
+                <td>${r.shift}</td>
+                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                <td><span class="badge-status ${r.status}">${r.status}</span></td>
+                <td style="text-align:center;">
+                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                </td>
+              `;
+            } else {
+                // Default: all combined
+                headers = ['ID', 'Type', 'Staff/Visitor', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                rowRenderer = (r) => {
+                    const statusMap = {
+                        'issued': 'Issued',
+                        'returned': 'Returned',
+                        'notreturned': 'Not Returned',
+                        'closed': 'Closed',
+                        'in': 'Check-In',
+                        'out': 'Check-Out',
+                        'checked-in': 'Checked-In',
+                        'reported': 'Reported',
+                        'completed': 'Completed'
+                    };
+                    const statusLabel = statusMap[r.status] || r.status;
+                    const typeLabel = { pass: 'Pass', visitor: 'Visitor', staff: 'Staff', incident: 'Incident',
+                        material: 'Material', cbn: 'CBN', security: 'Security' } [r.type] || r.type;
+                    return `
+                  <td>${r.id}</td>
+                  <td>${typeLabel}</td>
+                  <td><strong>${r.staffName || 'Visitor'}</strong></td>
+                  <td>${r.department}</td>
+                  <td>${r.location}</td>
+                  <td>${r.shift}</td>
+                  <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                  <td><span class="badge-status ${r.status}">${statusLabel}</span></td>
+                  <td style="text-align:center;">
+                    <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                  </td>
+                `;
+                };
+            }
+
+            let headHtml = `<tr>`;
+            headers.forEach(h => headHtml += `<th>${h}</th>`);
+            headHtml += `</tr>`;
+            tableHead.innerHTML = headHtml;
+
+            const totalRows = filteredRecords.length;
+            const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPageValue));
+            if (currentTablePage > totalPages) currentTablePage = totalPages;
+            const startIndex = (currentTablePage - 1) * rowsPerPageValue;
+            const endIndex = Math.min(startIndex + rowsPerPageValue, totalRows);
+            const pageRecords = filteredRecords.slice(startIndex, endIndex);
+
+            let bodyHtml = '';
+            pageRecords.forEach((r) => {
+                bodyHtml += `<tr class="clickable" onclick="openModal('${r.id}')">`;
+                bodyHtml += rowRenderer(r);
+                bodyHtml += `</tr>`;
             });
-            tableBody.innerHTML = html;
+            tableBody.innerHTML = bodyHtml;
+
+            tablePagination.style.display = 'flex';
+            tablePageInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalRows} (Page ${currentTablePage} of ${totalPages})`;
+            prevPageBtn.disabled = currentTablePage <= 1;
+            nextPageBtn.disabled = currentTablePage >= totalPages;
         }
 
         // ============================================================
@@ -1286,7 +1587,7 @@
             <div class="detail-row"><span class="label">Staff/Visitor</span><span class="value">${record.staffName || 'N/A'}</span></div>
             <div class="detail-row"><span class="label">Department</span><span class="value">${record.department}</span></div>
             <div class="detail-row"><span class="label">Unit</span><span class="value">${record.unit || 'N/A'}</span></div>
-            <div class="detail-row"><span class="label">Location</span><span class="value">${record.location}</span></div>
+            <div class="detail-row"><span class="label">Beat</span><span class="value">${record.location}</span></div>
             <div class="detail-row"><span class="label">Shift</span><span class="value">${record.shift}</span></div>
             <div class="detail-row"><span class="label">Date / Time</span><span class="value">${record.dateTime}</span></div>
             <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${record.status}">${record.status}</span></span></div>
@@ -1377,7 +1678,7 @@
             <p><strong>Staff/Visitor:</strong> ${record.staffName || 'N/A'}</p>
             <p><strong>Department:</strong> ${record.department}</p>
             <p><strong>Unit:</strong> ${record.unit || 'N/A'}</p>
-            <p><strong>Location:</strong> ${record.location}</p>
+            <p><strong>Beat:</strong> ${record.location}</p>
             <p><strong>Shift:</strong> ${record.shift}</p>
             <p><strong>Date/Time:</strong> ${record.dateTime}</p>
             <p><strong>Status:</strong> ${record.status}</p>
@@ -1424,7 +1725,7 @@
                   <th style="padding:8px 10px;text-align:left;">Type</th>
                   <th style="padding:8px 10px;text-align:left;">Name</th>
                   <th style="padding:8px 10px;text-align:left;">Dept</th>
-                  <th style="padding:8px 10px;text-align:left;">Location</th>
+                  <th style="padding:8px 10px;text-align:left;">Beat</th>
                   <th style="padding:8px 10px;text-align:left;">Shift</th>
                   <th style="padding:8px 10px;text-align:left;">Date</th>
                   <th style="padding:8px 10px;text-align:left;">Status</th>
@@ -1457,6 +1758,24 @@
 
         applyBtn.addEventListener('click', applyFilters);
         resetBtn.addEventListener('click', resetFilters);
+        rowsPerPage.addEventListener('change', () => {
+            rowsPerPageValue = Number(rowsPerPage.value) || 20;
+            currentTablePage = 1;
+            if (currentView === 'table') renderTable();
+        });
+        prevPageBtn.addEventListener('click', () => {
+            if (currentTablePage > 1) {
+                currentTablePage--;
+                if (currentView === 'table') renderTable();
+            }
+        });
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.max(1, Math.ceil(filteredRecords.length / rowsPerPageValue));
+            if (currentTablePage < totalPages) {
+                currentTablePage++;
+                if (currentView === 'table') renderTable();
+            }
+        });
         document.querySelectorAll('.filter-group select, .filter-group input').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') applyFilters();
@@ -1474,4 +1793,4 @@
         console.log('👥 Staff:', STAFF.length);
     </script>
 </body>
-<!-- </html> -->
+</html>
