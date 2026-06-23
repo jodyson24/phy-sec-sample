@@ -56,23 +56,33 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
             margin-bottom: 24px;
         }
-        .header h1 {
+        .header-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .header-title {
             font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #163820;
         }
-        .header h1 span {
-            background: #1a3a6b;
+        .header-title span {
+            background: #1f6f35;
             color: #fff;
             font-size: 14px;
             font-weight: 500;
             padding: 2px 14px;
             border-radius: 40px;
         }
-        .header-meta {
+        .header-subtitle {
+            font-size: 13px;
+            color: #5b6f60;
+        }
+        .header-links {
             font-size: 14px;
             color: #5e6f88;
             display: flex;
@@ -80,12 +90,20 @@
             gap: 18px;
             flex-wrap: wrap;
         }
-        .header-meta .badge {
-            background: #eef2f7;
-            padding: 6px 16px;
+        .header-links a {
+            background: #edf7ee;
+            padding: 8px 16px;
             border-radius: 40px;
-            font-weight: 500;
-            color: #1a3a6b;
+            font-weight: 600;
+            color: #1f6f35;
+            text-decoration: none;
+            border: 1px solid #cfe2d3;
+            transition: 0.2s;
+        }
+        .header-links a:hover {
+            background: #1f6f35;
+            color: #ffffff;
+            border-color: #1f6f35;
         }
 
         /* ---------- STATS ROW ---------- */
@@ -100,12 +118,12 @@
             border-radius: 16px;
             padding: 18px 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border-left: 4px solid #1a3a6b;
+            border-left: 4px solid #1f6f35;
         }
         .stat-card .label {
             font-size: 13px;
             font-weight: 500;
-            color: #6b7d98;
+            color: #5c6f62;
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
@@ -113,19 +131,19 @@
             font-size: 28px;
             font-weight: 700;
             margin-top: 4px;
-            color: #0f1a2e;
+            color: #1a2f22;
         }
         .stat-card:nth-child(2) {
-            border-left-color: #2d7a5a;
+            border-left-color: #2b7d4a;
         }
         .stat-card:nth-child(3) {
-            border-left-color: #b45a2a;
+            border-left-color: #6a7f2a;
         }
         .stat-card:nth-child(4) {
-            border-left-color: #8a4a8a;
+            border-left-color: #3b8357;
         }
         .stat-card:nth-child(5) {
-            border-left-color: #2a6b8a;
+            border-left-color: #4f7a5e;
         }
 
         /* ---------- FILTERS ---------- */
@@ -150,17 +168,17 @@
         .filter-group label {
             font-size: 12px;
             font-weight: 600;
-            color: #5a6f8a;
+            color: #4d6857;
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
         .filter-group select,
         .filter-group input {
             padding: 8px 12px;
-            border: 1.5px solid #dce2ea;
+            border: 1.5px solid #cfe2d3;
             border-radius: 10px;
             font-size: 14px;
-            background: #fafcfe;
+            background: #f7fcf8;
             color: #1a2332;
             outline: none;
             transition: 0.2s;
@@ -169,8 +187,8 @@
         }
         .filter-group select:focus,
         .filter-group input:focus {
-            border-color: #1a3a6b;
-            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12);
+            border-color: #1f6f35;
+            box-shadow: 0 0 0 3px rgba(31, 111, 53, 0.14);
         }
         .filter-actions {
             display: flex;
@@ -186,18 +204,18 @@
             font-size: 14px;
             cursor: pointer;
             transition: 0.2s;
-            background: #e9edf3;
+            background: #eaf2eb;
             color: #1a2332;
             white-space: nowrap;
         }
         .btn-primary {
-            background: #1a3a6b;
+            background: #1f6f35;
             color: #fff;
         }
         .btn-primary:hover {
-            background: #0f2a4f;
+            background: #18572b;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(26, 58, 107, 0.25);
+            box-shadow: 0 4px 12px rgba(31, 111, 53, 0.25);
         }
         .btn-success {
             background: #1f7b4a;
@@ -208,10 +226,10 @@
         }
         .btn-outline {
             background: transparent;
-            border: 1.5px solid #dce2ea;
+            border: 1.5px solid #cfe2d3;
         }
         .btn-outline:hover {
-            background: #f0f4fa;
+            background: #eef6ef;
         }
         .btn-sm {
             padding: 5px 14px;
@@ -229,7 +247,7 @@
         .view-toggle {
             display: flex;
             gap: 6px;
-            background: #eef2f7;
+            background: #eaf6ed;
             padding: 4px;
             border-radius: 12px;
         }
@@ -241,12 +259,12 @@
             font-size: 13px;
             cursor: pointer;
             background: transparent;
-            color: #5a6f8a;
+            color: #4d6857;
             transition: 0.2s;
         }
         .view-toggle button.active {
             background: #ffffff;
-            color: #1a3a6b;
+            color: #1f6f35;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
         .view-toggle button:hover:not(.active) {
@@ -285,9 +303,9 @@
             z-index: 14;
         }
         .group-tab {
-            border: 1px solid #dce2ea;
-            background: #f8faff;
-            color: #3d5068;
+            border: 1px solid #cfe2d3;
+            background: #f4fbf6;
+            color: #365243;
             border-radius: 999px;
             padding: 7px 14px;
             font-size: 13px;
@@ -296,17 +314,17 @@
             transition: 0.2s;
         }
         .group-tab:hover {
-            background: #eef4fa;
+            background: #e8f4eb;
         }
         .group-tab.active {
-            background: #1a3a6b;
-            border-color: #1a3a6b;
+            background: #1f6f35;
+            border-color: #1f6f35;
             color: #ffffff;
         }
         .grouped-hint {
-            background: #f8faff;
-            border: 1px dashed #cfd9e6;
-            color: #5a6f8a;
+            background: #f4fbf6;
+            border: 1px dashed #cfe2d3;
+            color: #4d6857;
             border-radius: 12px;
             padding: 14px 16px;
             font-size: 14px;
@@ -329,10 +347,10 @@
         .grouped-toolbar input,
         .grouped-toolbar select {
             padding: 8px 12px;
-            border: 1.5px solid #dce2ea;
+            border: 1.5px solid #cfe2d3;
             border-radius: 10px;
             font-size: 13px;
-            background: #fafcfe;
+            background: #f7fcf8;
             color: #1a2332;
             outline: none;
         }
@@ -349,8 +367,8 @@
             gap: 14px;
         }
         .group-card {
-            border: 1px solid #e6edf6;
-            border-left: 4px solid #1a3a6b;
+            border: 1px solid #d8e7da;
+            border-left: 4px solid #1f6f35;
             border-radius: 14px;
             background: #ffffff;
             overflow: hidden;
@@ -361,12 +379,12 @@
             align-items: center;
             gap: 10px;
             padding: 12px 14px;
-            background: #f8faff;
-            border-bottom: 1px solid #edf1f7;
+            background: #f4fbf6;
+            border-bottom: 1px solid #e6efe7;
             cursor: pointer;
         }
         .group-card-head:hover {
-            background: #eef4fa;
+            background: #e8f4eb;
         }
         .group-card-right {
             display: flex;
@@ -376,7 +394,7 @@
         }
         .group-card-toggle {
             font-size: 12px;
-            color: #5a6f8a;
+            color: #4d6857;
             font-weight: 700;
             min-width: 14px;
             text-align: center;
@@ -388,7 +406,7 @@
         }
         .group-card-meta {
             font-size: 12px;
-            color: #5a6f8a;
+            color: #4d6857;
             font-weight: 500;
         }
         .group-card-list {
@@ -406,7 +424,7 @@
             align-items: flex-start;
             gap: 10px;
             padding: 10px 14px;
-            border-bottom: 1px solid #f0f4fa;
+            border-bottom: 1px solid #edf4ee;
         }
         .group-card-item:last-child {
             border-bottom: none;
@@ -796,12 +814,15 @@
     <div class="app" id="app">
         <!-- HEADER -->
         <header class="header no-print">
-            <h1>🔐 Physical Security <span>Dashboard</span></h1>
-            <div class="header-meta">
-                <span class="badge">🕒 3 Shifts</span>
-                <span class="badge">📍 3 Beats</span>
-                <span class="badge" id="reportCount">0 Records</span>
+            <div class="header-brand">
+                <h1 class="header-title">Physical Security Reporting <span>Dashboard</span></h1>
+                <p class="header-subtitle">Prototype shell aligned with monthly report pages.</p>
             </div>
+            <nav class="header-links" aria-label="Report links">
+                <a href="material-search-escort.html">1. Material Search/Escort</a>
+                <a href="cbn-evacuation.html">2. CBN Evacuation</a>
+                <a href="security-documents.html">3. Security Documents</a>
+            </nav>
         </header>
 
         <!-- STATS -->
@@ -1423,7 +1444,9 @@
         }
 
         function updateReportCount() {
-            reportCount.textContent = filteredRecords.length + ' Records';
+            if (reportCount) {
+                reportCount.textContent = filteredRecords.length + ' Records';
+            }
         }
 
         function getStatusLabel(status) {

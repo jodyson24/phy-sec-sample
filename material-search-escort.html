@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Material Search/Escort Monthly Report</title>
+    <link rel="stylesheet" href="reports.css" />
+</head>
+<body data-report-type="material">
+    <main class="container">
+        <header class="header" id="reportHeader"></header>
+
+        <section class="panel">
+            <h2 id="reportTitle"></h2>
+            <div class="filters">
+                <div>
+                    <label for="monthFilter">Month</label>
+                    <input id="monthFilter" type="month" value="2026-06" />
+                </div>
+                <div>
+                    <label for="locationFilter">Location</label>
+                    <select id="locationFilter">
+                        <option value="">All Locations</option>
+                        <option value="Abuja Factory">Abuja Factory</option>
+                        <option value="Lagos Annex">Lagos Annex</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="periodFilter">Period</label>
+                    <select id="periodFilter">
+                        <option value="">All Periods</option>
+                        <option value="Morning">Morning</option>
+                        <option value="Afternoon">Afternoon</option>
+                        <option value="Night">Night</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="summary" id="summaryCards"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead id="reportHead"></thead>
+                    <tbody id="reportBody"></tbody>
+                </table>
+            </div>
+
+            <p class="empty" id="emptyState" hidden>No records found for the selected filters.</p>
+            <p class="note">Columns align with MaterialSearchEscorts fields in SecurePass and PSJoshuaScript.sql.</p>
+        </section>
+    </main>
+    <script src="reports.js"></script>
+</body>
+</html>
