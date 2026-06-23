@@ -149,9 +149,9 @@
             .join("");
 
         return `
-            <div class="brand">
-                <h1>Physical Security Reporting Sample</h1>
-                <p>${config.subtitle}</p>
+            <div class="header-brand">
+                <h1 class="header-title">Physical Security Reporting <span>Reports</span></h1>
+                <p class="header-subtitle">${config.subtitle}</p>
             </div>
             <nav class="header-links">${nav}</nav>
         `;
@@ -166,7 +166,7 @@
         holder.innerHTML = config.summary
             .map(card => {
                 const value = card.compute(records);
-                return `<div class="card"><div class="label">${card.label}</div><div class="value">${value}</div></div>`;
+                return `<div class="stat-card"><div class="label">${card.label}</div><div class="value">${value}</div></div>`;
             })
             .join("");
     }
