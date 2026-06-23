@@ -30,11 +30,20 @@
 
         <!-- STATS -->
         <section class="stats no-print" id="statsRow">
-            <div class="stat-card"><div class="label">Total Records</div><div class="value" id="statTotal">0</div></div>
-            <div class="stat-card"><div class="label">Passes Issued</div><div class="value" id="statPassIssued">0</div></div>
-            <div class="stat-card"><div class="label">Visitors</div><div class="value" id="statVisitors">0</div></div>
-            <div class="stat-card"><div class="label">Staff Check‑Ins</div><div class="value" id="statStaffIn">0</div></div>
-            <div class="stat-card"><div class="label">Incidents</div><div class="value" id="statIncidents">0</div></div>
+            <div class="stat-card">
+                <div class="label">Daily Pass Counters (Changing Beat)</div>
+                <div class="stat-meta" id="dailyPassesDate">Date: --</div>
+                <div class="value" id="statDailyPasses">0</div>
+                <div class="stats-inline-grid" id="dailyPassesCounters"></div>
+                <div class="stats-breakdown" id="dailyPassesBreakdown"></div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Daily Visitors Counters</div>
+                <div class="stat-meta" id="dailyVisitorsDate">Date: --</div>
+                <div class="value" id="statDailyVisitors">0</div>
+                <div class="stats-inline-grid" id="dailyVisitorsCounters"></div>
+                <div class="stats-breakdown" id="dailyVisitorsBreakdown"></div>
+            </div>
         </section>
 
         <!-- FILTERS -->
@@ -42,22 +51,17 @@
             <div class="filter-group">
                 <label>Report Type</label>
                 <select id="reportType">
-                    <option value="all">All Combined</option>
-                    <option value="checkinout">Checked‑In/Out</option>
+                    <option value="all">All (Passes + Visitors)</option>
                     <option value="passout">Pass Out</option>
                     <option value="visitors">Visitors into Factory</option>
-                    <option value="material">Monthly Search/Escort</option>
-                    <option value="cbn">CBN Evacuation</option>
-                    <option value="security">Security Documents</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label>Recurrence</label>
                 <select id="recurrence">
-                    <option value="daily">Daily</option>
+                    <option value="daily" selected>Daily</option>
                     <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="custom" selected>Custom Range</option>
+                    <option value="custom">Custom Range</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -73,9 +77,8 @@
                 <label>Beat</label>
                 <select id="filterBeat">
                     <option value="">All Beats</option>
-                    <option value="Manager's Entrance">Manager's Entrance</option>
+                    <option value="Manager's Entrance (Print Hall)">Manager's Entrance (Print Hall)</option>
                     <option value="Changing Room Beat">Changing Room Beat</option>
-                    <option value="Gate House">Gate House</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -218,7 +221,7 @@
                     departmentId: dept.id,
                     unit: unit,
                     role: role,
-                    location: ['Manager\'s Entrance', 'Changing Room Beat', 'Gate House'][i % 3],
+                    location: ['Printing Hall', 'Changing Room Beat', 'Gate House'][i % 3],
                 });
             }
             return staff;
@@ -300,7 +303,7 @@
                 });
             }
 
-            // 2. Visitors (only at Manager's Entrance) – for check-in/out
+            // 2. Visitors (only at Printing Hall) – for check-in/out
             for (let i = 0; i < Math.floor(count * 0.2); i++) {
                 const dept = pick(DEPARTMENTS);
                 const visitorName = 'Visitor ' + pick(['A', 'B', 'C', 'D', 'E']) + rand(10, 99);
@@ -317,7 +320,7 @@
                     staffName: visitorName,
                     department: dept.name,
                     unit: 'Visitor',
-                    location: 'Manager\'s Entrance',
+                    location: 'Printing Hall',
                     shift: shift,
                     date: formatDate(checkIn),
                     time: formatTime(checkIn),
@@ -333,10 +336,10 @@
                 // Also add a checked-out record? We'll keep as separate records.
             }
 
-            // 3. Staff Check-In/Out (both Manager's Entrance and Changing Room Beat)
+            // 3. Staff Check-In/Out (both Printing Hall and Changing Room Beat)
             for (let i = 0; i < Math.floor(count * 0.25); i++) {
                 const staff = getStaff();
-                const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
+                const loc = pick(['Printing Hall', 'Changing Room Beat']);
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
                 const activity = pick(['Check-In', 'Check-Out']);
@@ -366,9 +369,9 @@
                 });
             }
 
-            // 4. Incidents & Relief (both Manager's Entrance and Changing Room Beat)
+            // 4. Incidents & Relief (both Printing Hall and Changing Room Beat)
             for (let i = 0; i < Math.floor(count * 0.1); i++) {
-                const loc = pick(['Manager\'s Entrance', 'Changing Room Beat']);
+                const loc = pick(['Printing Hall', 'Changing Room Beat']);
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
                 const incidentTime = new Date(date);
@@ -415,7 +418,7 @@
                     staffName: staff.firstName + ' ' + staff.lastName,
                     department: staff.department,
                     unit: staff.unit,
-                    location: pick(['Manager\'s Entrance', 'Changing Room Beat']),
+                    location: pick(['Printing Hall', 'Changing Room Beat']),
                     shift: shift,
                     date: formatDate(date),
                     time: formatTime(date),
@@ -469,7 +472,7 @@
                     staffName: staff.firstName + ' ' + staff.lastName,
                     department: staff.department,
                     unit: staff.unit,
-                    location: pick(['Manager\'s Entrance', 'Changing Room Beat']),
+                    location: pick(['Printing Hall', 'Changing Room Beat']),
                     shift: shift,
                     date: formatDate(date),
                     time: formatTime(date),
@@ -493,7 +496,194 @@
         //  2.  STATE
         // ============================================================
 
-        let allRecords = generateRecords(120);
+        const PASS_GUIDE_BASE = {
+            Morning: { issued: 25, returned: 13, notreturned: 8, closed: 4 },
+            Afternoon: { issued: 12, returned: 8, notreturned: 2, closed: 2 },
+            Night: { issued: 0, returned: 0, notreturned: 0, closed: 0 }
+        };
+
+        const VISITOR_GUIDE_BASE = {
+            "Manager's Entrance (Print Hall)": {
+                Morning: { in: 87, out: 72 },
+                Afternoon: { in: 44, out: 32 },
+                Night: { in: 25, out: 18 }
+            },
+            "Changing Room Beat": {
+                Morning: { in: 127, out: 114 },
+                Afternoon: { in: 87, out: 72 },
+                Night: { in: 45, out: 36 }
+            }
+        };
+
+        const DEMO_VISITOR_DEPARTMENTS = ['Audit', 'ICT', 'External', 'Planning', 'Operations', 'Finance', 'HR'];
+        const DEMO_NAMES = ['Nafiu Abdullafeez', 'Afolayan Fariq', 'Wada Muktari', 'Akelu Yusuf', 'Bashir Tasiu', 'M. Abdullah', 'Y. Omotayo', 'E. Yakini'];
+
+        function shiftedCount(base, dayOffset) {
+            if (dayOffset === 0) return base;
+            const factorBand = [0.38, 0.47, 0.58, 0.66, 0.52, 0.43, 0.35];
+            const factor = factorBand[(dayOffset - 1) % factorBand.length];
+            return Math.max(0, Math.round(base * factor));
+        }
+
+        function createGuideDemoRecords(days = 8) {
+            const records = [];
+            let passId = 1;
+            let visitorId = 1;
+            const shifts = ['Morning', 'Afternoon', 'Night'];
+            const shiftStartHour = { Morning: 8, Afternoon: 14, Night: 21 };
+
+            for (let dayOffset = 0; dayOffset < days; dayOffset++) {
+                const date = new Date();
+                date.setHours(0, 0, 0, 0);
+                date.setDate(date.getDate() - dayOffset);
+                const isoDate = formatDate(date);
+
+                shifts.forEach((shift, shiftIndex) => {
+                    const passBase = PASS_GUIDE_BASE[shift];
+                    const passIssued = shiftedCount(passBase.issued, dayOffset);
+                    const passReturned = shiftedCount(passBase.returned, dayOffset);
+                    const passNotReturned = shiftedCount(passBase.notreturned, dayOffset);
+                    const passClosed = Math.min(shiftedCount(passBase.closed, dayOffset), passIssued);
+                    let passOpen = Math.max(0, passIssued - (passReturned + passNotReturned + passClosed));
+
+                    for (let i = 0; i < passReturned; i++) {
+                        const minute = (i * 3) % 60;
+                        records.push({
+                            id: 'P' + String(passId++).padStart(5, '0'),
+                            type: 'pass',
+                            staffId: 'P' + String(2000 + i + shiftIndex).padStart(4, '0'),
+                            staffName: DEMO_NAMES[(i + shiftIndex) % DEMO_NAMES.length],
+                            department: 'Security',
+                            unit: 'Control Room',
+                            location: 'Changing Room Beat',
+                            shift,
+                            date: isoDate,
+                            time: `${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            dateTime: `${isoDate} ${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            status: 'returned',
+                            details: {
+                                passType: i % 2 === 0 ? 'Internal' : 'External',
+                                issuedBy: 'DO-001',
+                                source: 'Change Room',
+                                destination: i % 2 === 0 ? 'Internal Unit' : 'External Assignment'
+                            }
+                        });
+                    }
+
+                    for (let i = 0; i < passNotReturned; i++) {
+                        const minute = (i * 5 + 7) % 60;
+                        records.push({
+                            id: 'P' + String(passId++).padStart(5, '0'),
+                            type: 'pass',
+                            staffId: 'P' + String(3000 + i + shiftIndex).padStart(4, '0'),
+                            staffName: DEMO_NAMES[(i + shiftIndex + 2) % DEMO_NAMES.length],
+                            department: 'Operations',
+                            unit: 'Shift Team',
+                            location: 'Changing Room Beat',
+                            shift,
+                            date: isoDate,
+                            time: `${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            dateTime: `${isoDate} ${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            status: 'notreturned',
+                            details: {
+                                passType: 'External',
+                                issuedBy: 'DO-001',
+                                followUp: 'Awaiting closure at end of shift'
+                            }
+                        });
+                    }
+
+                    for (let i = 0; i < passClosed; i++) {
+                        const minute = (i * 4 + 11) % 60;
+                        records.push({
+                            id: 'P' + String(passId++).padStart(5, '0'),
+                            type: 'pass',
+                            staffId: 'P' + String(4000 + i + shiftIndex).padStart(4, '0'),
+                            staffName: DEMO_NAMES[(i + shiftIndex + 4) % DEMO_NAMES.length],
+                            department: 'Security',
+                            unit: 'Gate House',
+                            location: 'Changing Room Beat',
+                            shift,
+                            date: isoDate,
+                            time: `${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            dateTime: `${isoDate} ${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            status: 'closed',
+                            details: {
+                                passType: 'Internal',
+                                issuedBy: 'DO-001',
+                                closedBy: 'Shift Controller'
+                            }
+                        });
+                    }
+
+                    for (let i = 0; i < passOpen; i++) {
+                        const minute = (i * 7 + 13) % 60;
+                        records.push({
+                            id: 'P' + String(passId++).padStart(5, '0'),
+                            type: 'pass',
+                            staffId: 'P' + String(5000 + i + shiftIndex).padStart(4, '0'),
+                            staffName: DEMO_NAMES[(i + shiftIndex + 6) % DEMO_NAMES.length],
+                            department: 'Security',
+                            unit: 'Patrol',
+                            location: 'Changing Room Beat',
+                            shift,
+                            date: isoDate,
+                            time: `${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            dateTime: `${isoDate} ${pad(shiftStartHour[shift])}:${pad(minute)}`,
+                            status: 'issued',
+                            details: {
+                                passType: 'Internal',
+                                issuedBy: 'DO-001',
+                                note: 'Open pass'
+                            }
+                        });
+                    }
+
+                    Object.entries(VISITOR_GUIDE_BASE).forEach(([beat, beatStats], beatIndex) => {
+                        const visitorIn = shiftedCount(beatStats[shift].in, dayOffset);
+                        const visitorOut = Math.min(shiftedCount(beatStats[shift].out, dayOffset), visitorIn);
+
+                        for (let i = 0; i < visitorIn; i++) {
+                            const minute = (i * 2 + beatIndex * 7) % 60;
+                            const hostIndex = (i + shiftIndex + beatIndex) % DEMO_NAMES.length;
+                            const checkedOut = i < visitorOut;
+                            const checkInHour = shift === 'Morning' ? 7 + ((i % 8) / 4) : shift === 'Afternoon' ? 14 + ((i % 8) / 4) : 21 + ((i % 8) / 4);
+                            const inHourInt = Math.floor(checkInHour);
+                            const inMinute = minute;
+                            const outHourInt = (inHourInt + 1) % 24;
+                            const outMinute = (inMinute + 20) % 60;
+
+                            records.push({
+                                id: 'V' + String(visitorId++).padStart(5, '0'),
+                                type: 'visitor',
+                                staffId: null,
+                                staffName: `Visitor ${String(i + 1).padStart(3, '0')}`,
+                                department: DEMO_VISITOR_DEPARTMENTS[(i + beatIndex + shiftIndex) % DEMO_VISITOR_DEPARTMENTS.length],
+                                unit: 'Visitor',
+                                location: beat,
+                                shift,
+                                date: isoDate,
+                                time: `${pad(inHourInt)}:${pad(inMinute)}`,
+                                dateTime: `${isoDate} ${pad(inHourInt)}:${pad(inMinute)}`,
+                                status: 'checked-in',
+                                details: {
+                                    checkInTime: `${isoDate} ${pad(inHourInt)}:${pad(inMinute)}`,
+                                    checkOutTime: checkedOut ? `${isoDate} ${pad(outHourInt)}:${pad(outMinute)}` : '',
+                                    checkedOut,
+                                    purpose: ['Meeting', 'Inspection', 'Delivery', 'Official Visit'][i % 4],
+                                    host: DEMO_NAMES[hostIndex]
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            records.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+            return records;
+        }
+
+        let allRecords = createGuideDemoRecords();
         let filteredRecords = [...allRecords];
         let currentView = 'grouped';
         let currentModalRecord = null;
@@ -536,12 +726,127 @@
         const modalCloseBtn = $('modalCloseBtn');
         const modalPdfBtn = $('modalPdfBtn');
         const reportCount = $('reportCount');
-        const statTotal = $('statTotal');
-        const statPassIssued = $('statPassIssued');
-        const statVisitors = $('statVisitors');
-        const statStaffIn = $('statStaffIn');
-        const statIncidents = $('statIncidents');
+        const statDailyPasses = $('statDailyPasses');
+        const statDailyVisitors = $('statDailyVisitors');
+        const dailyPassesDate = $('dailyPassesDate');
+        const dailyVisitorsDate = $('dailyVisitorsDate');
+        const dailyPassesCounters = $('dailyPassesCounters');
+        const dailyVisitorsCounters = $('dailyVisitorsCounters');
+        const dailyPassesBreakdown = $('dailyPassesBreakdown');
+        const dailyVisitorsBreakdown = $('dailyVisitorsBreakdown');
         const exportPdfAll = $('exportPdfAll');
+
+        function startOfToday() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            return now;
+        }
+
+        function formatDateLabel(isoDate) {
+            const date = new Date(isoDate + 'T00:00:00');
+            return date.toLocaleDateString(undefined, {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function getCurrentDateIso() {
+            return formatDate(new Date());
+        }
+
+        function setDateRangeFromRecurrence() {
+            const mode = recurrence.value;
+            if (mode === 'custom') {
+                return;
+            }
+
+            const today = startOfToday();
+            let fromDate = new Date(today);
+            let toDate = new Date(today);
+
+            if (mode === 'weekly') {
+                fromDate.setDate(today.getDate() - 6);
+            }
+
+            filterDateFrom.value = formatDate(fromDate);
+            filterDateTo.value = formatDate(toDate);
+        }
+
+        function updateDailyOverviewStats() {
+            const todayIso = getCurrentDateIso();
+            const passesToday = allRecords.filter(r => r.type === 'pass' && r.date === todayIso);
+            const visitorsToday = allRecords.filter(r => r.type === 'visitor' && r.date === todayIso);
+
+            const shifts = ['Morning', 'Afternoon', 'Night'];
+            const passByShift = { Morning: { issued: 0, returned: 0, notreturned: 0, closed: 0 }, Afternoon: { issued: 0, returned: 0, notreturned: 0, closed: 0 }, Night: { issued: 0, returned: 0, notreturned: 0, closed: 0 } };
+
+            passesToday.forEach((record) => {
+                const shiftKey = shifts.includes(record.shift) ? record.shift : 'Morning';
+                passByShift[shiftKey].issued += 1;
+                if (record.status === 'returned') passByShift[shiftKey].returned += 1;
+                if (record.status === 'notreturned') passByShift[shiftKey].notreturned += 1;
+                if (record.status === 'closed') passByShift[shiftKey].closed += 1;
+            });
+
+            const passTotals = {
+                issued: passesToday.length,
+                returned: passesToday.filter(r => r.status === 'returned').length,
+                notreturned: passesToday.filter(r => r.status === 'notreturned').length,
+                closed: passesToday.filter(r => r.status === 'closed').length
+            };
+
+            const visitorByBeat = {
+                "Manager's Entrance (Print Hall)": { Morning: { in: 0, out: 0 }, Afternoon: { in: 0, out: 0 }, Night: { in: 0, out: 0 } },
+                "Changing Room Beat": { Morning: { in: 0, out: 0 }, Afternoon: { in: 0, out: 0 }, Night: { in: 0, out: 0 } }
+            };
+
+            visitorsToday.forEach((record) => {
+                const beat = record.location in visitorByBeat ? record.location : "Manager's Entrance (Print Hall)";
+                const shiftKey = shifts.includes(record.shift) ? record.shift : 'Morning';
+                visitorByBeat[beat][shiftKey].in += 1;
+                if (record.details && record.details.checkedOut) visitorByBeat[beat][shiftKey].out += 1;
+            });
+
+            const visitorTotals = {
+                checkedIn: visitorsToday.length,
+                checkedOut: visitorsToday.filter(r => r.details && r.details.checkedOut).length
+            };
+
+            statDailyPasses.textContent = passTotals.issued;
+            statDailyVisitors.textContent = visitorTotals.checkedIn;
+
+            dailyPassesCounters.innerHTML = `
+                <div><span class="key">Returned</span><span class="num">${passTotals.returned}</span></div>
+                <div><span class="key">Not Returned</span><span class="num">${passTotals.notreturned}</span></div>
+                <div><span class="key">Closed</span><span class="num">${passTotals.closed}</span></div>
+            `;
+
+            dailyVisitorsCounters.innerHTML = `
+                <div><span class="key">Checked-In</span><span class="num">${visitorTotals.checkedIn}</span></div>
+                <div><span class="key">Checked-Out</span><span class="num">${visitorTotals.checkedOut}</span></div>
+            `;
+
+            dailyPassesBreakdown.innerHTML = shifts.map((shift) => {
+                const row = passByShift[shift];
+                return `<div class="break-row"><span class="shift">${shift}</span><span>I ${row.issued}</span><span>R ${row.returned}</span><span>NR ${row.notreturned}</span><span>C ${row.closed}</span></div>`;
+            }).join('');
+
+            const beatNames = Object.keys(visitorByBeat);
+            dailyVisitorsBreakdown.innerHTML = beatNames.map((beatName) => {
+                const compact = beatName === "Manager's Entrance (Print Hall)" ? "Manager's Entrance" : beatName;
+                const rows = shifts.map((shift) => {
+                    const row = visitorByBeat[beatName][shift];
+                    return `<div class="break-row"><span class="shift">${shift}</span><span>In ${row.in}</span><span>Out ${row.out}</span></div>`;
+                }).join('');
+                return `<div class="break-section"><div class="section-title">${compact}</div>${rows}</div>`;
+            }).join('');
+
+            const label = `Date: ${formatDateLabel(todayIso)}`;
+            dailyPassesDate.textContent = label;
+            dailyVisitorsDate.textContent = label;
+        }
 
         // ============================================================
         //  4.  POPULATE FILTER DROPDOWNS
@@ -561,6 +866,8 @@
         // ============================================================
 
         function applyFilters() {
+            setDateRangeFromRecurrence();
+
             const type = reportType.value;
             const shift = filterShift.value;
             const beat = filterBeat.value;
@@ -570,13 +877,9 @@
 
             // Map display type to record type(s)
             let allowedTypes = [];
-            if (type === 'all') allowedTypes = ['pass', 'visitor', 'staff', 'incident', 'material', 'cbn', 'security'];
-            else if (type === 'checkinout') allowedTypes = ['staff', 'visitor'];
+            if (type === 'all') allowedTypes = ['pass', 'visitor'];
             else if (type === 'passout') allowedTypes = ['pass'];
             else if (type === 'visitors') allowedTypes = ['visitor'];
-            else if (type === 'material') allowedTypes = ['material'];
-            else if (type === 'cbn') allowedTypes = ['cbn'];
-            else if (type === 'security') allowedTypes = ['security'];
 
             // Business rules: Pass only at Changing Room Beat
             filteredRecords = allRecords.filter(r => {
@@ -588,8 +891,8 @@
                 if (to && r.date > to) return false;
                 // Passes only at Changing Room Beat
                 if (r.type === 'pass' && r.location !== 'Changing Room Beat') return false;
-                // Visitors only at Manager's Entrance
-                if (r.type === 'visitor' && r.location !== 'Manager\'s Entrance') return false;
+                // Visitors only at guide beats
+                if (r.type === 'visitor' && !["Manager's Entrance (Print Hall)", 'Changing Room Beat'].includes(r.location)) return false;
                 return true;
             });
             currentTablePage = 1;
@@ -603,20 +906,18 @@
 
         function resetFilters() {
             reportType.value = 'all';
-            recurrence.value = 'custom';
+            recurrence.value = 'daily';
             filterShift.value = '';
             filterBeat.value = '';
             filterDepartment.value = '';
-            filterDateFrom.value = '';
-            filterDateTo.value = '';
-            filteredRecords = [...allRecords];
+            setDateRangeFromRecurrence();
+            applyFilters();
             currentTablePage = 1;
             groupedActiveBeat = null;
             groupedActiveShift = null;
             groupedSearchTerm = '';
             groupedSortOrder = 'latest';
             groupedExpandedCardKey = null;
-            render();
         }
 
         // ============================================================
@@ -624,26 +925,13 @@
         // ============================================================
 
         function render() {
-            updateStats();
+            updateDailyOverviewStats();
             updateReportCount();
             if (currentView === 'grouped') {
                 renderGrouped();
             } else {
                 renderTable();
             }
-        }
-
-        function updateStats() {
-            const total = filteredRecords.length;
-            const passIssued = filteredRecords.filter(r => r.type === 'pass' && r.status === 'issued').length;
-            const visitors = filteredRecords.filter(r => r.type === 'visitor').length;
-            const staffIn = filteredRecords.filter(r => r.type === 'staff' && r.status === 'in').length;
-            const incidents = filteredRecords.filter(r => r.type === 'incident').length;
-            statTotal.textContent = total;
-            statPassIssued.textContent = passIssued;
-            statVisitors.textContent = visitors;
-            statStaffIn.textContent = staffIn;
-            statIncidents.textContent = incidents;
         }
 
         function updateReportCount() {
@@ -672,10 +960,7 @@
                 pass: 'Pass',
                 visitor: 'Visitor',
                 staff: 'Staff',
-                incident: 'Incident',
-                material: 'Material',
-                cbn: 'CBN',
-                security: 'Security'
+                incident: 'Incident'
             };
             return typeMap[type] || type;
         }
@@ -685,10 +970,7 @@
                 pass: '🪪',
                 visitor: '👤',
                 staff: '🛡️',
-                incident: '⚠️',
-                material: '📦',
-                cbn: '💵',
-                security: '📄'
+                incident: '⚠️'
             };
             return iconMap[type] || '📌';
         }
@@ -719,14 +1001,6 @@
                 <p>Try adjusting the filters above.</p>
               </div>
             `;
-                return;
-            }
-
-            // Determine hierarchy based on report type
-            const type = reportType.value;
-            // For monthly forms, we show aggregated summary cards instead of tree
-            if (type === 'material' || type === 'cbn' || type === 'security') {
-                renderMonthlySummary(type);
                 return;
             }
 
@@ -913,41 +1187,6 @@
             renderGrouped();
         };
 
-        // Monthly summary cards
-        function renderMonthlySummary(type) {
-            // Aggregate data
-            const agg = {};
-            filteredRecords.forEach(r => {
-                const key = r.details?.materialType || r.details?.denomination || r.details?.docType || 'Other';
-                if (!agg[key]) agg[key] = { count: 0, total: 0 };
-                agg[key].count++;
-                // For material, sum quantity weight (convert to number)
-                if (type === 'material' && r.details?.quantityWeight) {
-                    const num = parseFloat(r.details.quantityWeight);
-                    if (!isNaN(num)) agg[key].total += num;
-                }
-                // For CBN, sum amount (notes)
-                if (type === 'cbn' && r.details?.amount) {
-                    const num = parseFloat(r.details.amount);
-                    if (!isNaN(num)) agg[key].total += num;
-                }
-                // For security, just count
-            });
-
-            let html = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">`;
-            for (const [key, data] of Object.entries(agg)) {
-                html += `
-              <div style="background:#f8faff;padding:16px;border-radius:12px;border-left:4px solid #1a3a6b;">
-                <div style="font-weight:600;font-size:16px;">${key}</div>
-                <div style="font-size:28px;font-weight:700;color:#1a3a6b;">${data.count}</div>
-                <div style="font-size:13px;color:#5a6f8a;">${type === 'material' ? 'Total Weight: '+data.total.toFixed(0)+' kg' : type === 'cbn' ? 'Total Notes: '+data.total.toFixed(0) : 'Total Entries'}</div>
-              </div>
-            `;
-            }
-            html += `</div>`;
-            groupedContainer.innerHTML = html;
-        }
-
         // ---------- TABLE VIEW ----------
         function renderTable() {
             groupedContainer.style.display = 'none';
@@ -966,61 +1205,7 @@
             let headers = [];
             let rowRenderer = null;
 
-            if (type === 'material') {
-                headers = ['ID', 'Material Type', 'Quantity/Weight', 'Department', 'Beat', 'Shift', 'Date', 'Status',
-                    'Actions'
-                ];
-                rowRenderer = (r) => `
-                <td>${r.id}</td>
-                <td>${r.details?.materialType || 'N/A'}</td>
-                <td>${r.details?.quantityWeight || 'N/A'}</td>
-                <td>${r.department}</td>
-                <td>${r.location}</td>
-                <td>${r.shift}</td>
-                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
-                <td><span class="badge-status ${r.status}">${r.status}</span></td>
-                <td style="text-align:center;">
-                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
-                </td>
-              `;
-            } else if (type === 'cbn') {
-                headers = ['ID', 'Denomination', 'Amount', 'Vehicle', 'Department', 'Beat', 'Shift', 'Date', 'Status',
-                    'Actions'
-                ];
-                rowRenderer = (r) => `
-                <td>${r.id}</td>
-                <td>${r.details?.denomination || 'N/A'}</td>
-                <td>${r.details?.amount || 'N/A'}</td>
-                <td>${r.details?.vehicleReg || 'N/A'}</td>
-                <td>${r.department}</td>
-                <td>${r.location}</td>
-                <td>${r.shift}</td>
-                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
-                <td><span class="badge-status ${r.status}">${r.status}</span></td>
-                <td style="text-align:center;">
-                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
-                </td>
-              `;
-            } else if (type === 'security') {
-                headers = ['ID', 'Document Type', 'Destination', 'Escort', 'Department', 'Beat', 'Shift', 'Date', 'Status',
-                    'Actions'
-                ];
-                rowRenderer = (r) => `
-                <td>${r.id}</td>
-                <td>${r.details?.docType || 'N/A'}</td>
-                <td>${r.details?.destination || 'N/A'}</td>
-                <td>${r.details?.escortOfficer || 'N/A'}</td>
-                <td>${r.department}</td>
-                <td>${r.location}</td>
-                <td>${r.shift}</td>
-                <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
-                <td><span class="badge-status ${r.status}">${r.status}</span></td>
-                <td style="text-align:center;">
-                  <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
-                </td>
-              `;
-            } else {
-                // Default: all combined
+                        if (type === 'all') {
                 headers = ['ID', 'Type', 'Staff/Visitor', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
                 rowRenderer = (r) => {
                     const statusLabel = getStatusLabel(r.status);
@@ -1039,6 +1224,34 @@
                   </td>
                 `;
                 };
+                        } else if (type === 'passout') {
+                                headers = ['ID', 'Staff', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                                rowRenderer = (r) => `
+                                    <td>${r.id}</td>
+                                    <td><strong>${r.staffName || 'N/A'}</strong></td>
+                                    <td>${r.department}</td>
+                                    <td>${r.location}</td>
+                                    <td>${r.shift}</td>
+                                    <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                                    <td><span class="badge-status ${r.status}">${getStatusLabel(r.status)}</span></td>
+                                    <td style="text-align:center;">
+                                        <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                                    </td>
+                                `;
+                        } else {
+                                headers = ['ID', 'Visitor', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                                rowRenderer = (r) => `
+                                    <td>${r.id}</td>
+                                    <td><strong>${r.staffName || 'Visitor'}</strong></td>
+                                    <td>${r.department}</td>
+                                    <td>${r.location}</td>
+                                    <td>${r.shift}</td>
+                                    <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
+                                    <td><span class="badge-status ${r.status}">${getStatusLabel(r.status)}</span></td>
+                                    <td style="text-align:center;">
+                                        <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                                    </td>
+                                `;
             }
 
             let headHtml = `<tr>`;
@@ -1254,6 +1467,10 @@
 
         applyBtn.addEventListener('click', applyFilters);
         resetBtn.addEventListener('click', resetFilters);
+        recurrence.addEventListener('change', () => {
+            setDateRangeFromRecurrence();
+            applyFilters();
+        });
         rowsPerPage.addEventListener('change', () => {
             rowsPerPageValue = Number(rowsPerPage.value) || 20;
             currentTablePage = 1;
@@ -1282,7 +1499,9 @@
         //  11. INIT
         // ============================================================
 
-        render();
+        setDateRangeFromRecurrence();
+        applyFilters();
+        setInterval(updateDailyOverviewStats, 30000);
 
         console.log('🔐 Physical Security Dashboard (refined) initialized.');
         console.log(`📊 ${allRecords.length} records loaded.`);
