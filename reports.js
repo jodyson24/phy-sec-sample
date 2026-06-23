@@ -138,6 +138,7 @@
 
     function createHeader(activeReportKey, config) {
         const links = [
+            { key: "dashboard", href: "index.html", label: "Dashboard Home" },
             { key: "material", href: "material-search-escort.html", label: "1. Material Search/Escort" },
             { key: "cbn", href: "cbn-evacuation.html", label: "2. CBN Evacuation" },
             { key: "security", href: "security-documents.html", label: "3. Security Documents" }

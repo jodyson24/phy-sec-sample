@@ -106,6 +106,41 @@
             border-color: #1f6f35;
         }
 
+        .menu-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #d9e8db;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            padding: 16px 18px;
+            margin-bottom: 18px;
+        }
+        .menu-panel h2 {
+            font-size: 16px;
+            color: #1b3a26;
+            margin-bottom: 10px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+        .menu-link {
+            display: block;
+            text-decoration: none;
+            background: #f2fbf4;
+            border: 1px solid #cfe2d3;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #1f6f35;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .menu-link:hover {
+            background: #1f6f35;
+            color: #ffffff;
+            border-color: #1f6f35;
+        }
+
         /* ---------- STATS ROW ---------- */
         .stats {
             display: grid;
@@ -824,6 +859,15 @@
                 <a href="security-documents.html">3. Security Documents</a>
             </nav>
         </header>
+
+        <section class="menu-panel no-print" aria-label="Reports menu">
+            <h2>Reports Menu</h2>
+            <div class="menu-grid">
+                <a class="menu-link" href="material-search-escort.html">1. Material Search/Escort</a>
+                <a class="menu-link" href="cbn-evacuation.html">2. CBN Evacuation</a>
+                <a class="menu-link" href="security-documents.html">3. Security Documents</a>
+            </div>
+        </section>
 
         <!-- STATS -->
         <section class="stats no-print" id="statsRow">
