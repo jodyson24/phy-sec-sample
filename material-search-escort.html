@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Material Search/Escort Monthly Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body data-report-type="material">
@@ -27,6 +29,10 @@
         <section class="report-title-wrap">
             <h2 id="reportTitle" class="report-title"></h2>
         </section>
+
+        <div class="no-print" style="display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <button class="btn btn-pdf btn-sm" id="exportPdfAll">📄 Export Monthly PDF</button>
+        </div>
 
         <section class="filters no-print">
             <div class="filter-group">
@@ -66,6 +72,20 @@
         <div class="empty-state" id="emptyState" hidden>
             <div class="big-icon">📭</div>
             <h3>No records found for the selected filters.</h3>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Report Entry Details</h2>
+                    <button class="close-btn" id="modalClose">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer no-print">
+                    <button class="btn btn-outline" id="modalCloseBtn">Close</button>
+                    <button class="btn btn-pdf" id="modalPdfBtn">📄 PDF</button>
+                </div>
+            </div>
         </div>
     </main>
     <script src="reports.js"></script>

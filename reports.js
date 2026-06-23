@@ -178,7 +178,7 @@
         }
 
         const headers = config.columns.map(c => `<th>${c[1]}</th>`).join("");
-        tableHead.innerHTML = `<tr>${headers}</tr>`;
+        tableHead.innerHTML = `<tr>${headers}<th>Actions</th></tr>`;
     }
 
     function renderRows(config, records) {
@@ -201,9 +201,148 @@
                 const cells = config.columns
                     .map(col => `<td>${record[col[0]] ?? ""}</td>`)
                     .join("");
-                return `<tr>${cells}</tr>`;
+                return `<tr class="clickable" onclick="openModal('${record.id}')">${cells}<td><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openModal('${record.id}')">View</button><button class="btn btn-pdf btn-sm" onclick="event.stopPropagation();exportSinglePdf('${record.id}')">PDF</button></div></td></tr>`;
             })
             .join("");
+    }
+
+    function toTitleCaseLabel(key) {
+        return String(key)
+            .replace(/([A-Z])/g, " $1")
+            .replace(/[_-]+/g, " ")
+            .replace(/^./, s => s.toUpperCase())
+            .trim();
+    }
+
+    function createElementForPdf(html) {
+        const div = document.createElement("div");
+        div.style.padding = "24px";
+        div.style.fontFamily = "Segoe UI, system-ui, sans-serif";
+        div.style.background = "#ffffff";
+        div.style.color = "#1a2332";
+        div.style.maxWidth = "980px";
+        div.style.margin = "0 auto";
+        div.innerHTML = html;
+        return div;
+    }
+
+    function generatePdfFromElement(element, filename) {
+        if (!window.jspdf || typeof window.html2canvas !== "function") {
+            alert("PDF libraries are not loaded on this page.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        window.html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false
+        }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfPageHeight = pdf.internal.pageSize.getHeight();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            let heightLeft = pdfHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pdfPageHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pdfPageHeight;
+            }
+
+            pdf.save(filename);
+        }).catch(error => {
+            console.error(error);
+            alert("Could not generate PDF. Please try again.");
+        });
+    }
+
+    function buildSingleRecordPdfMarkup(config, record) {
+        const rows = config.columns
+            .map(([field, label]) => `<p style="margin:0 0 8px;"><strong>${label}:</strong> ${record[field] ?? ""}</p>`)
+            .join("");
+
+        return `
+            <h2 style="margin:0 0 12px;color:#163820;border-bottom:2px solid #1f6f35;padding-bottom:8px;">${config.title} - Entry Detail</h2>
+            <p style="margin:0 0 10px;"><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+            ${rows}
+        `;
+    }
+
+    function buildGroupedMonthlyPdfMarkup(config, records, selectedMonth) {
+        const groups = records.reduce((acc, record) => {
+            const location = record.location || "Unspecified Location";
+            const period = record.period || "Unspecified Period";
+
+            if (!acc[location]) {
+                acc[location] = {};
+            }
+
+            if (!acc[location][period]) {
+                acc[location][period] = [];
+            }
+
+            acc[location][period].push(record);
+            return acc;
+        }, {});
+
+        const locationSections = Object.entries(groups)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([location, periods]) => {
+                const periodBlocks = Object.entries(periods)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([period, entries]) => {
+                        const rows = entries
+                            .map(entry => {
+                                const rowCells = config.columns
+                                    .map(([field]) => `<td style="padding:7px 10px;border-bottom:1px solid #e8edf3;vertical-align:top;">${entry[field] ?? ""}</td>`)
+                                    .join("");
+                                return `<tr>${rowCells}</tr>`;
+                            })
+                            .join("");
+
+                        const head = config.columns
+                            .map(([, label]) => `<th style="padding:8px 10px;text-align:left;background:#edf7ee;color:#163820;border-bottom:1px solid #d9e8dd;">${label}</th>`)
+                            .join("");
+
+                        return `
+                            <div style="margin:12px 0 18px;">
+                                <h4 style="margin:0 0 8px;color:#1f6f35;">${period} (${entries.length})</h4>
+                                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                                    <thead><tr>${head}</tr></thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            </div>
+                        `;
+                    })
+                    .join("");
+
+                const locationTotal = Object.values(periods).reduce((sum, list) => sum + list.length, 0);
+
+                return `
+                    <section style="margin:18px 0 24px;padding:14px;border:1px solid #dce7dd;border-radius:12px;">
+                        <h3 style="margin:0 0 8px;color:#163820;">${location} (${locationTotal})</h3>
+                        ${periodBlocks}
+                    </section>
+                `;
+            })
+            .join("");
+
+        const monthLabel = selectedMonth || "All Months";
+        return `
+            <h2 style="margin:0 0 12px;color:#163820;border-bottom:2px solid #1f6f35;padding-bottom:8px;">${config.title} - Monthly Grouped Export</h2>
+            <p style="margin:0 0 6px;"><strong>Month:</strong> ${monthLabel}</p>
+            <p style="margin:0 0 6px;"><strong>Total Entries:</strong> ${records.length}</p>
+            <p style="margin:0 0 16px;"><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+            ${locationSections}
+        `;
     }
 
     function init() {
@@ -220,6 +359,16 @@
         const monthInput = document.getElementById("monthFilter");
         const locationInput = document.getElementById("locationFilter");
         const periodInput = document.getElementById("periodFilter");
+        const modalOverlay = document.getElementById("modalOverlay");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalBody = document.getElementById("modalBody");
+        const modalClose = document.getElementById("modalClose");
+        const modalCloseBtn = document.getElementById("modalCloseBtn");
+        const modalPdfBtn = document.getElementById("modalPdfBtn");
+        const exportPdfAll = document.getElementById("exportPdfAll");
+
+        let filteredRecords = [];
+        let currentModalRecord = null;
 
         if (header) {
             header.innerHTML = createHeader(reportType, config);
@@ -230,6 +379,106 @@
         }
 
         renderTableHeader(config);
+
+        function updateModalContent(record) {
+            if (!modalTitle || !modalBody) {
+                return;
+            }
+
+            modalTitle.textContent = `${config.title} - Entry`;
+            const rows = config.columns
+                .map(([field, label]) => `<div class="detail-row"><span class="label">${label}</span><span class="value">${record[field] ?? ""}</span></div>`)
+                .join("");
+            modalBody.innerHTML = rows;
+        }
+
+        function closeModal() {
+            if (!modalOverlay) {
+                return;
+            }
+
+            modalOverlay.classList.remove("open");
+            document.body.style.overflow = "";
+            currentModalRecord = null;
+        }
+
+        window.openModal = function(id) {
+            if (!modalOverlay) {
+                return;
+            }
+
+            const record = filteredRecords.find(r => String(r.id) === String(id));
+            if (!record) {
+                return;
+            }
+
+            currentModalRecord = record;
+            updateModalContent(record);
+            modalOverlay.classList.add("open");
+            document.body.style.overflow = "hidden";
+        };
+
+        window.exportSinglePdf = function(id) {
+            const record = filteredRecords.find(r => String(r.id) === String(id));
+            if (!record) {
+                return;
+            }
+
+            const node = createElementForPdf(buildSingleRecordPdfMarkup(config, record));
+            document.body.appendChild(node);
+            generatePdfFromElement(node, `${reportType}_entry_${id}.pdf`);
+            setTimeout(() => node.remove(), 150);
+        };
+
+        if (modalClose) {
+            modalClose.addEventListener("click", closeModal);
+        }
+
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener("click", closeModal);
+        }
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener("click", event => {
+                if (event.target === modalOverlay) {
+                    closeModal();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        if (modalPdfBtn) {
+            modalPdfBtn.addEventListener("click", () => {
+                if (!currentModalRecord) {
+                    return;
+                }
+
+                const node = createElementForPdf(buildSingleRecordPdfMarkup(config, currentModalRecord));
+                document.body.appendChild(node);
+                generatePdfFromElement(node, `${reportType}_entry_${currentModalRecord.id}.pdf`);
+                setTimeout(() => node.remove(), 150);
+            });
+        }
+
+        if (exportPdfAll) {
+            exportPdfAll.addEventListener("click", () => {
+                if (!filteredRecords.length) {
+                    alert("No records to export for the current filters.");
+                    return;
+                }
+
+                const monthValue = monthInput ? monthInput.value : "";
+                const node = createElementForPdf(buildGroupedMonthlyPdfMarkup(config, filteredRecords, monthValue));
+                document.body.appendChild(node);
+                generatePdfFromElement(node, `${reportType}_monthly_grouped_${monthValue || "all"}.pdf`);
+                setTimeout(() => node.remove(), 150);
+            });
+        }
 
         fetch(config.dataPath)
             .then(response => {
@@ -256,6 +505,8 @@
                         return monthOk && locationOk && periodOk;
                     });
 
+                    filteredRecords = filtered;
+
                     renderSummary(config, filtered);
                     renderRows(config, filtered);
                 }
@@ -272,7 +523,10 @@
                 const empty = document.getElementById("emptyState");
                 if (empty) {
                     empty.hidden = false;
-                    empty.textContent = "Unable to load report data file.";
+                    const titleNode = empty.querySelector("h3");
+                    if (titleNode) {
+                        titleNode.textContent = "Unable to load report data file.";
+                    }
                 }
             });
     }
