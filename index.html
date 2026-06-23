@@ -65,19 +65,10 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Shift</label>
-                <select id="filterShift">
-                    <option value="">All Shifts</option>
-                    <option value="Morning">Morning (7‑2)</option>
-                    <option value="Afternoon">Afternoon (2‑9)</option>
-                    <option value="Night">Night (9‑7)</option>
-                </select>
-            </div>
-            <div class="filter-group">
                 <label>Beat</label>
                 <select id="filterBeat">
                     <option value="">All Beats</option>
-                    <option value="Manager's Entrance (Print Hall)">Manager's Entrance (Print Hall)</option>
+                    <option value="Print Hall Entrance">Print Hall Entrance</option>
                     <option value="Changing Room Beat">Changing Room Beat</option>
                 </select>
             </div>
@@ -151,7 +142,6 @@
                 <div class="modal-body" id="modalBody"></div>
                 <div class="modal-footer no-print">
                     <button class="btn btn-outline" id="modalCloseBtn">Close</button>
-                    <button class="btn btn-pdf" id="modalPdfBtn">📄 PDF</button>
                 </div>
             </div>
         </div>
@@ -221,7 +211,7 @@
                     departmentId: dept.id,
                     unit: unit,
                     role: role,
-                    location: ['Printing Hall', 'Changing Room Beat', 'Gate House'][i % 3],
+                    location: ['Print Hall Entrance', 'Changing Room Beat', 'Gate House'][i % 3],
                 });
             }
             return staff;
@@ -303,7 +293,7 @@
                 });
             }
 
-            // 2. Visitors (only at Printing Hall) – for check-in/out
+            // 2. Visitors (only at Print Hall Entrance) – for check-in/out
             for (let i = 0; i < Math.floor(count * 0.2); i++) {
                 const dept = pick(DEPARTMENTS);
                 const visitorName = 'Visitor ' + pick(['A', 'B', 'C', 'D', 'E']) + rand(10, 99);
@@ -320,7 +310,7 @@
                     staffName: visitorName,
                     department: dept.name,
                     unit: 'Visitor',
-                    location: 'Printing Hall',
+                    location: 'Print Hall Entrance',
                     shift: shift,
                     date: formatDate(checkIn),
                     time: formatTime(checkIn),
@@ -336,10 +326,10 @@
                 // Also add a checked-out record? We'll keep as separate records.
             }
 
-            // 3. Staff Check-In/Out (both Printing Hall and Changing Room Beat)
+            // 3. Staff Check-In/Out (both Print Hall Entrance and Changing Room Beat)
             for (let i = 0; i < Math.floor(count * 0.25); i++) {
                 const staff = getStaff();
-                const loc = pick(['Printing Hall', 'Changing Room Beat']);
+                const loc = pick(['Print Hall Entrance', 'Changing Room Beat']);
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
                 const activity = pick(['Check-In', 'Check-Out']);
@@ -369,9 +359,9 @@
                 });
             }
 
-            // 4. Incidents & Relief (both Printing Hall and Changing Room Beat)
+            // 4. Incidents & Relief (both Print Hall Entrance and Changing Room Beat)
             for (let i = 0; i < Math.floor(count * 0.1); i++) {
-                const loc = pick(['Printing Hall', 'Changing Room Beat']);
+                const loc = pick(['Print Hall Entrance', 'Changing Room Beat']);
                 const date = randomDate(start, end);
                 const shift = getShiftNameForDate(date);
                 const incidentTime = new Date(date);
@@ -418,7 +408,7 @@
                     staffName: staff.firstName + ' ' + staff.lastName,
                     department: staff.department,
                     unit: staff.unit,
-                    location: pick(['Printing Hall', 'Changing Room Beat']),
+                    location: pick(['Print Hall Entrance', 'Changing Room Beat']),
                     shift: shift,
                     date: formatDate(date),
                     time: formatTime(date),
@@ -472,7 +462,7 @@
                     staffName: staff.firstName + ' ' + staff.lastName,
                     department: staff.department,
                     unit: staff.unit,
-                    location: pick(['Printing Hall', 'Changing Room Beat']),
+                    location: pick(['Print Hall Entrance', 'Changing Room Beat']),
                     shift: shift,
                     date: formatDate(date),
                     time: formatTime(date),
@@ -503,15 +493,10 @@
         };
 
         const VISITOR_GUIDE_BASE = {
-            "Manager's Entrance (Print Hall)": {
+            "Print Hall Entrance": {
                 Morning: { in: 87, out: 72 },
                 Afternoon: { in: 44, out: 32 },
                 Night: { in: 25, out: 18 }
-            },
-            "Changing Room Beat": {
-                Morning: { in: 127, out: 114 },
-                Afternoon: { in: 87, out: 72 },
-                Night: { in: 45, out: 36 }
             }
         };
 
@@ -690,7 +675,6 @@
         let currentTablePage = 1;
         let rowsPerPageValue = 20;
         let groupedActiveBeat = null;
-        let groupedActiveShift = null;
         let groupedSearchTerm = '';
         let groupedSortOrder = 'latest';
         let groupedExpandedCardKey = null;
@@ -702,7 +686,6 @@
         const $ = (id) => document.getElementById(id);
         const reportType = $('reportType');
         const recurrence = $('recurrence');
-        const filterShift = $('filterShift');
         const filterBeat = $('filterBeat');
         const filterDepartment = $('filterDepartment');
         const filterDateFrom = $('filterDateFrom');
@@ -724,7 +707,6 @@
         const modalTitle = $('modalTitle');
         const modalClose = $('modalClose');
         const modalCloseBtn = $('modalCloseBtn');
-        const modalPdfBtn = $('modalPdfBtn');
         const reportCount = $('reportCount');
         const statDailyPasses = $('statDailyPasses');
         const statDailyVisitors = $('statDailyVisitors');
@@ -779,35 +761,12 @@
             const passesToday = allRecords.filter(r => r.type === 'pass' && r.date === todayIso);
             const visitorsToday = allRecords.filter(r => r.type === 'visitor' && r.date === todayIso);
 
-            const shifts = ['Morning', 'Afternoon', 'Night'];
-            const passByShift = { Morning: { issued: 0, returned: 0, notreturned: 0, closed: 0 }, Afternoon: { issued: 0, returned: 0, notreturned: 0, closed: 0 }, Night: { issued: 0, returned: 0, notreturned: 0, closed: 0 } };
-
-            passesToday.forEach((record) => {
-                const shiftKey = shifts.includes(record.shift) ? record.shift : 'Morning';
-                passByShift[shiftKey].issued += 1;
-                if (record.status === 'returned') passByShift[shiftKey].returned += 1;
-                if (record.status === 'notreturned') passByShift[shiftKey].notreturned += 1;
-                if (record.status === 'closed') passByShift[shiftKey].closed += 1;
-            });
-
             const passTotals = {
                 issued: passesToday.length,
                 returned: passesToday.filter(r => r.status === 'returned').length,
                 notreturned: passesToday.filter(r => r.status === 'notreturned').length,
                 closed: passesToday.filter(r => r.status === 'closed').length
             };
-
-            const visitorByBeat = {
-                "Manager's Entrance (Print Hall)": { Morning: { in: 0, out: 0 }, Afternoon: { in: 0, out: 0 }, Night: { in: 0, out: 0 } },
-                "Changing Room Beat": { Morning: { in: 0, out: 0 }, Afternoon: { in: 0, out: 0 }, Night: { in: 0, out: 0 } }
-            };
-
-            visitorsToday.forEach((record) => {
-                const beat = record.location in visitorByBeat ? record.location : "Manager's Entrance (Print Hall)";
-                const shiftKey = shifts.includes(record.shift) ? record.shift : 'Morning';
-                visitorByBeat[beat][shiftKey].in += 1;
-                if (record.details && record.details.checkedOut) visitorByBeat[beat][shiftKey].out += 1;
-            });
 
             const visitorTotals = {
                 checkedIn: visitorsToday.length,
@@ -828,20 +787,22 @@
                 <div><span class="key">Checked-Out</span><span class="num">${visitorTotals.checkedOut}</span></div>
             `;
 
-            dailyPassesBreakdown.innerHTML = shifts.map((shift) => {
-                const row = passByShift[shift];
-                return `<div class="break-row"><span class="shift">${shift}</span><span>I ${row.issued}</span><span>R ${row.returned}</span><span>NR ${row.notreturned}</span><span>C ${row.closed}</span></div>`;
-            }).join('');
+            dailyPassesBreakdown.innerHTML = `
+                <div class="break-row"><span class="shift">Today</span><span>I ${passTotals.issued}</span><span>R ${passTotals.returned}</span><span>NR ${passTotals.notreturned}</span><span>C ${passTotals.closed}</span></div>
+            `;
 
-            const beatNames = Object.keys(visitorByBeat);
-            dailyVisitorsBreakdown.innerHTML = beatNames.map((beatName) => {
-                const compact = beatName === "Manager's Entrance (Print Hall)" ? "Manager's Entrance" : beatName;
-                const rows = shifts.map((shift) => {
-                    const row = visitorByBeat[beatName][shift];
-                    return `<div class="break-row"><span class="shift">${shift}</span><span>In ${row.in}</span><span>Out ${row.out}</span></div>`;
-                }).join('');
-                return `<div class="break-section"><div class="section-title">${compact}</div>${rows}</div>`;
-            }).join('');
+            const visitorsByName = visitorsToday
+                .slice()
+                .sort((a, b) => new Date(a.details?.checkInTime || a.dateTime) - new Date(b.details?.checkInTime || b.dateTime))
+                .slice(0, 8)
+                .map(v => {
+                    const checkIn = v.details?.checkInTime || '';
+                    const checkOut = v.details?.checkOutTime || 'Pending';
+                    return `<div class="break-row"><span class="shift">${v.staffName}</span><span>${v.department}</span><span>In ${checkIn ? checkIn.slice(11, 16) : '--:--'}</span><span>Out ${checkOut === 'Pending' ? 'Pending' : checkOut.slice(11, 16)}</span></div>`;
+                })
+                .join('');
+
+            dailyVisitorsBreakdown.innerHTML = visitorsByName || '<div class="break-row"><span class="shift">No visitors today</span><span>--</span><span>In --:--</span><span>Out --:--</span></div>';
 
             const label = `Date: ${formatDateLabel(todayIso)}`;
             dailyPassesDate.textContent = label;
@@ -869,7 +830,6 @@
             setDateRangeFromRecurrence();
 
             const type = reportType.value;
-            const shift = filterShift.value;
             const beat = filterBeat.value;
             const dept = filterDepartment.value;
             const from = filterDateFrom.value;
@@ -884,20 +844,18 @@
             // Business rules: Pass only at Changing Room Beat
             filteredRecords = allRecords.filter(r => {
                 if (!allowedTypes.includes(r.type)) return false;
-                if (shift && r.shift !== shift) return false;
                 if (beat && r.location !== beat) return false;
                 if (dept && r.department !== dept) return false;
                 if (from && r.date < from) return false;
                 if (to && r.date > to) return false;
                 // Passes only at Changing Room Beat
                 if (r.type === 'pass' && r.location !== 'Changing Room Beat') return false;
-                // Visitors only at guide beats
-                if (r.type === 'visitor' && !["Manager's Entrance (Print Hall)", 'Changing Room Beat'].includes(r.location)) return false;
+                // Visitors only through Print Hall Entrance
+                if (r.type === 'visitor' && r.location !== 'Print Hall Entrance') return false;
                 return true;
             });
             currentTablePage = 1;
             groupedActiveBeat = null;
-            groupedActiveShift = null;
             groupedSearchTerm = '';
             groupedSortOrder = 'latest';
             groupedExpandedCardKey = null;
@@ -907,14 +865,12 @@
         function resetFilters() {
             reportType.value = 'all';
             recurrence.value = 'daily';
-            filterShift.value = '';
             filterBeat.value = '';
             filterDepartment.value = '';
             setDateRangeFromRecurrence();
             applyFilters();
             currentTablePage = 1;
             groupedActiveBeat = null;
-            groupedActiveShift = null;
             groupedSearchTerm = '';
             groupedSortOrder = 'latest';
             groupedExpandedCardKey = null;
@@ -1004,24 +960,20 @@
                 return;
             }
 
-            // Build lightweight hierarchy: Beat -> Shift -> records
+            // Build lightweight hierarchy: Beat -> records
             const tree = {};
             filteredRecords.forEach(r => {
                 const beat = r.location;
-                const shift = r.shift;
-                if (!tree[beat]) tree[beat] = {};
-                if (!tree[beat][shift]) tree[beat][shift] = {};
-                if (!tree[beat][shift].records) tree[beat][shift].records = [];
-                tree[beat][shift].records.push(r);
+                if (!tree[beat]) tree[beat] = [];
+                tree[beat].push(r);
             });
 
             const beatEntries = Object.entries(tree);
             let html = '';
 
             html += `<div class="grouped-tabs grouped-tabs-primary">`;
-            beatEntries.forEach(([beat, shifts]) => {
-                const beatCount = Object.values(shifts).reduce((acc, shiftObj) => acc + (shiftObj.records || []).length,
-                    0);
+            beatEntries.forEach(([beat, records]) => {
+                const beatCount = records.length;
                 const activeClass = groupedActiveBeat === beat ? 'active' : '';
                 html += `<button class="group-tab ${activeClass}" onclick="setGroupedBeat('${escapeSingleQuote(beat)}')">${beat} (${beatCount})</button>`;
             });
@@ -1033,24 +985,9 @@
                 return;
             }
 
-            const shiftEntries = Object.entries(tree[groupedActiveBeat]);
-            html += `<div class="grouped-tabs grouped-tabs-secondary">`;
-            shiftEntries.forEach(([shift, shiftObj]) => {
-                const shiftCount = (shiftObj.records || []).length;
-                const activeClass = groupedActiveShift === shift ? 'active' : '';
-                html += `<button class="group-tab ${activeClass}" onclick="setGroupedShift('${escapeSingleQuote(shift)}')">${shift} (${shiftCount})</button>`;
-            });
-            html += `</div>`;
-
-            if (!groupedActiveShift || !tree[groupedActiveBeat][groupedActiveShift]) {
-                html += `<div class="grouped-hint">Select a Shift tab to view cards for ${groupedActiveBeat}.</div>`;
-                groupedContainer.innerHTML = html;
-                return;
-            }
-
             html += `
                 <div class="grouped-toolbar grouped-toolbar-sticky">
-                    <input type="text" placeholder="Search by name, type, department, unit, ID or status" value="${escapeHtml(groupedSearchTerm)}" oninput="setGroupedSearch(this.value)" />
+                    <input type="text" placeholder="Search by name, department, ID or status" value="${escapeHtml(groupedSearchTerm)}" oninput="setGroupedSearch(this.value)" />
                     <select onchange="setGroupedSort(this.value)">
                         <option value="latest" ${groupedSortOrder === 'latest' ? 'selected' : ''}>Latest First</option>
                         <option value="oldest" ${groupedSortOrder === 'oldest' ? 'selected' : ''}>Oldest First</option>
@@ -1058,7 +995,7 @@
                 </div>
             `;
 
-            const selectedRecords = tree[groupedActiveBeat][groupedActiveShift].records || [];
+            const selectedRecords = tree[groupedActiveBeat] || [];
             const query = groupedSearchTerm.trim().toLowerCase();
             const visibleRecords = selectedRecords
                 .filter(r => {
@@ -1069,7 +1006,6 @@
                         r.department,
                         r.unit || 'General',
                         r.location,
-                        r.shift,
                         r.type,
                         getTypeLabel(r.type),
                         r.status,
@@ -1085,70 +1021,38 @@
                 });
 
             if (visibleRecords.length === 0) {
-                html += `<div class="grouped-hint">No records found for this Beat/Shift with the current search.</div>`;
+                html += `<div class="grouped-hint">No records found for this Beat with the current search.</div>`;
                 groupedContainer.innerHTML = html;
                 return;
             }
 
-            const cardsMap = {};
-            visibleRecords.forEach(r => {
-                const key = `${r.department}|||${r.unit || 'General'}`;
-                if (!cardsMap[key]) {
-                    cardsMap[key] = {
-                        key,
-                        department: r.department,
-                        unit: r.unit || 'General',
-                        records: []
-                    };
-                }
-                cardsMap[key].records.push(r);
-            });
-
-            const cards = Object.values(cardsMap).sort((a, b) => (b.records.length - a.records.length) ||
-                a.department.localeCompare(b.department));
-
-            const cardKeys = cards.map(c => c.key);
-            if (cardKeys.length && !cardKeys.includes(groupedExpandedCardKey)) {
-                groupedExpandedCardKey = cardKeys[0];
-            }
-
             html += `<div class="grouped-cards">`;
-            cards.forEach(card => {
-                const isExpanded = groupedExpandedCardKey === card.key;
+            visibleRecords.forEach(r => {
+                const statusLabel = getStatusLabel(r.status);
+                const typeLabel = getTypeLabel(r.type);
+                const typeIcon = getTypeIcon(r.type);
+                const checkIn = r.details?.checkInTime ? r.details.checkInTime.slice(11, 16) : '--:--';
+                const checkOut = r.details?.checkOutTime ? r.details.checkOutTime.slice(11, 16) : 'Pending';
                 html += `
                 <div class="group-card">
-                    <div class="group-card-head" onclick="setGroupedExpandedCard('${escapeSingleQuote(card.key)}')">
+                    <div class="group-card-head">
                         <div>
-                            <div class="group-card-title">${card.department} · ${card.unit}</div>
-                            <div class="group-card-meta">${groupedActiveBeat} · ${groupedActiveShift}</div>
+                            <div class="group-card-title"><span class="type-icon">${typeIcon}</span>${r.staffName || 'Visitor'}</div>
+                            <div class="group-card-meta">${r.department} · ${typeLabel} · ${statusLabel}</div>
                         </div>
                         <div class="group-card-right">
-                            <span class="count">${card.records.length}</span>
-                            <span class="group-card-toggle">${isExpanded ? '▼' : '▶'}</span>
+                            <span class="count">${r.date}</span>
                         </div>
                     </div>
-                    <ul class="group-card-list ${isExpanded ? 'is-expanded' : ''}" style="display:${isExpanded ? 'block' : 'none'};">
-                `;
-
-                card.records.forEach(r => {
-                    const statusLabel = getStatusLabel(r.status);
-                    const typeLabel = getTypeLabel(r.type);
-                    const typeIcon = getTypeIcon(r.type);
-                    html += `
+                    <ul class="group-card-list is-expanded" style="display:block;">
                         <li class="group-card-item">
                             <div class="group-card-main">
-                                <div class="name"><span class="type-icon">${typeIcon}</span>${r.staffName || 'Visitor'} ${r.type === 'visitor' ? '(Visitor)' : ''}</div>
-                                <div class="desc">${typeLabel} · ${r.date} ${r.time} · ${statusLabel}</div>
+                                <div class="desc">Check-In: ${checkIn} · Check-Out: ${checkOut} · Beat: ${r.location}</div>
                             </div>
                             <div class="group-card-actions">
                                 <button class="btn btn-outline btn-sm" onclick="openModal('${r.id}')">View</button>
-                                <button class="btn btn-pdf btn-sm" onclick="exportSinglePdf('${r.id}')">PDF</button>
                             </div>
                         </li>
-                    `;
-                });
-
-                html += `
                     </ul>
                 </div>
                 `;
@@ -1160,13 +1064,6 @@
 
         window.setGroupedBeat = function(beat) {
             groupedActiveBeat = beat;
-            groupedActiveShift = null;
-            groupedExpandedCardKey = null;
-            renderGrouped();
-        };
-
-        window.setGroupedShift = function(shift) {
-            groupedActiveShift = shift;
             groupedExpandedCardKey = null;
             renderGrouped();
         };
@@ -1206,50 +1103,55 @@
             let rowRenderer = null;
 
                         if (type === 'all') {
-                headers = ['ID', 'Type', 'Staff/Visitor', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                headers = ['ID', 'Type', 'Staff/Visitor', 'Department', 'Beat', 'Check-In', 'Check-Out', 'Date/Time', 'Status', 'Actions'];
                 rowRenderer = (r) => {
                     const statusLabel = getStatusLabel(r.status);
                     const typeLabel = getTypeLabel(r.type);
+                    const checkIn = r.details?.checkInTime ? r.details.checkInTime.slice(11, 16) : '--:--';
+                    const checkOut = r.details?.checkOutTime ? r.details.checkOutTime.slice(11, 16) : 'Pending';
                     return `
                   <td>${r.id}</td>
                   <td>${typeLabel}</td>
                   <td><strong>${r.staffName || 'Visitor'}</strong></td>
                   <td>${r.department}</td>
                   <td>${r.location}</td>
-                  <td>${r.shift}</td>
+                  <td>${checkIn}</td>
+                  <td>${checkOut}</td>
                   <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
                   <td><span class="badge-status ${r.status}">${statusLabel}</span></td>
                   <td style="text-align:center;">
-                    <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();openModal('${r.id}')">View</button>
                   </td>
                 `;
                 };
                         } else if (type === 'passout') {
-                                headers = ['ID', 'Staff', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                                headers = ['ID', 'Staff', 'Department', 'Beat', 'Check-In', 'Check-Out', 'Date/Time', 'Status', 'Actions'];
                                 rowRenderer = (r) => `
                                     <td>${r.id}</td>
                                     <td><strong>${r.staffName || 'N/A'}</strong></td>
                                     <td>${r.department}</td>
                                     <td>${r.location}</td>
-                                    <td>${r.shift}</td>
+                                    <td>--:--</td>
+                                    <td>--:--</td>
                                     <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
                                     <td><span class="badge-status ${r.status}">${getStatusLabel(r.status)}</span></td>
                                     <td style="text-align:center;">
-                                        <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                                        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();openModal('${r.id}')">View</button>
                                     </td>
                                 `;
                         } else {
-                                headers = ['ID', 'Visitor', 'Department', 'Beat', 'Shift', 'Date/Time', 'Status', 'Actions'];
+                                headers = ['ID', 'Visitor', 'Department', 'Beat', 'Check-In', 'Check-Out', 'Date/Time', 'Status', 'Actions'];
                                 rowRenderer = (r) => `
                                     <td>${r.id}</td>
                                     <td><strong>${r.staffName || 'Visitor'}</strong></td>
                                     <td>${r.department}</td>
                                     <td>${r.location}</td>
-                                    <td>${r.shift}</td>
+                                    <td>${r.details?.checkInTime ? r.details.checkInTime.slice(11, 16) : '--:--'}</td>
+                                    <td>${r.details?.checkOutTime ? r.details.checkOutTime.slice(11, 16) : 'Pending'}</td>
                                     <td>${r.date}<br><span style="font-size:12px;color:#6b7d98;">${r.time}</span></td>
                                     <td><span class="badge-status ${r.status}">${getStatusLabel(r.status)}</span></td>
                                     <td style="text-align:center;">
-                                        <button class="btn btn-sm btn-pdf" onclick="event.stopPropagation();exportSinglePdf('${r.id}')">📄 PDF</button>
+                                        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();openModal('${r.id}')">View</button>
                                     </td>
                                 `;
             }
@@ -1297,7 +1199,6 @@
             <div class="detail-row"><span class="label">Department</span><span class="value">${record.department}</span></div>
             <div class="detail-row"><span class="label">Unit</span><span class="value">${record.unit || 'N/A'}</span></div>
             <div class="detail-row"><span class="label">Beat</span><span class="value">${record.location}</span></div>
-            <div class="detail-row"><span class="label">Shift</span><span class="value">${record.shift}</span></div>
             <div class="detail-row"><span class="label">Date / Time</span><span class="value">${record.dateTime}</span></div>
             <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-status ${record.status}">${record.status}</span></span></div>
           `;
@@ -1365,51 +1266,21 @@
             });
         }
 
-        window.exportSinglePdf = function(id) {
-            const record = filteredRecords.find(r => r.id === id);
-            if (!record) return;
-            const div = document.createElement('div');
-            div.style.padding = '24px';
-            div.style.fontFamily = 'Segoe UI, sans-serif';
-            div.style.maxWidth = '600px';
-            div.style.margin = '0 auto';
-            div.style.background = '#fff';
-            const d = record.details || {};
-            let extra = '';
-            Object.entries(d).forEach(([k, v]) => {
-                const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-                extra += `<p><strong>${label}:</strong> ${v}</p>`;
-            });
-            div.innerHTML = `
-            <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">🔐 Physical Security Record</h2>
-            <p><strong>ID:</strong> ${record.id}</p>
-            <p><strong>Type:</strong> ${record.type}</p>
-            <p><strong>Staff/Visitor:</strong> ${record.staffName || 'N/A'}</p>
-            <p><strong>Department:</strong> ${record.department}</p>
-            <p><strong>Unit:</strong> ${record.unit || 'N/A'}</p>
-            <p><strong>Beat:</strong> ${record.location}</p>
-            <p><strong>Shift:</strong> ${record.shift}</p>
-            <p><strong>Date/Time:</strong> ${record.dateTime}</p>
-            <p><strong>Status:</strong> ${record.status}</p>
-            ${extra}
-            <p style="margin-top:20px;font-size:12px;color:#6b7d98;">Generated on ${new Date().toLocaleString()}</p>
-          `;
-            document.body.appendChild(div);
-            generatePdfFromElement(div, `Record_${record.id}.pdf`);
-            setTimeout(() => div.remove(), 100);
-        };
-
         exportPdfAll.addEventListener('click', function() {
             if (filteredRecords.length === 0) {
                 alert('No records to export.');
                 return;
             }
+                        const from = filterDateFrom.value || 'all';
+                        const to = filterDateTo.value || 'all';
             const div = document.createElement('div');
             div.style.padding = '24px';
             div.style.fontFamily = 'Segoe UI, sans-serif';
             div.style.background = '#fff';
             let rows = '';
             filteredRecords.forEach(r => {
+                                const checkIn = r.details?.checkInTime ? r.details.checkInTime.slice(11, 16) : '--:--';
+                                const checkOut = r.details?.checkOutTime ? r.details.checkOutTime.slice(11, 16) : 'Pending';
                 rows += `
               <tr>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.id}</td>
@@ -1417,7 +1288,8 @@
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.staffName || 'Visitor'}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.department}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.location}</td>
-                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.shift}</td>
+                                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${checkIn}</td>
+                                <td style="padding:6px 10px;border-bottom:1px solid #eee;">${checkOut}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.date}</td>
                 <td style="padding:6px 10px;border-bottom:1px solid #eee;">${r.status}</td>
               </tr>
@@ -1426,6 +1298,7 @@
             div.innerHTML = `
             <h2 style="border-bottom:2px solid #1a3a6b;padding-bottom:10px;color:#1a3a6b;">📋 Physical Security — Full Report</h2>
             <p><strong>Total Records:</strong> ${filteredRecords.length}</p>
+                        <p><strong>Date Range:</strong> ${from} to ${to}</p>
             <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
             <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;">
               <thead>
@@ -1435,7 +1308,8 @@
                   <th style="padding:8px 10px;text-align:left;">Name</th>
                   <th style="padding:8px 10px;text-align:left;">Dept</th>
                   <th style="padding:8px 10px;text-align:left;">Beat</th>
-                  <th style="padding:8px 10px;text-align:left;">Shift</th>
+                                    <th style="padding:8px 10px;text-align:left;">Check-In</th>
+                                    <th style="padding:8px 10px;text-align:left;">Check-Out</th>
                   <th style="padding:8px 10px;text-align:left;">Date</th>
                   <th style="padding:8px 10px;text-align:left;">Status</th>
                 </tr>
@@ -1444,7 +1318,7 @@
             </table>
           `;
             document.body.appendChild(div);
-            generatePdfFromElement(div, `Full_Report_${formatDate(new Date())}.pdf`);
+                        generatePdfFromElement(div, `Full_Report_${from}_to_${to}.pdf`);
             setTimeout(() => div.remove(), 100);
         });
 

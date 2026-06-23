@@ -15,7 +15,6 @@
                 ["destinationDisposal", "Destination/Disposal"],
                 ["remarks", "Remarks"],
                 ["zonalOfficerComment", "Zonal Officer Comment"],
-                ["period", "Period"],
                 ["shiftDate", "Shift Date"]
             ],
             summary: [
@@ -54,7 +53,6 @@
                 ["truckDetail", "Truck Detail"],
                 ["observations", "Observations"],
                 ["dutyOfficerComment", "Duty Officer Comment"],
-                ["period", "Period"],
                 ["shiftDate", "Shift Date"]
             ],
             summary: [
@@ -96,8 +94,7 @@
                 ["driver", "Driver"],
                 ["securityEscort", "Security Escort"],
                 ["remarks", "Remarks"],
-                ["dutyOfficerRemark", "Duty Officer Remark"],
-                ["period", "Period"]
+                ["dutyOfficerRemark", "Duty Officer Remark"]
             ],
             summary: [
                 {
@@ -201,7 +198,7 @@
                 const cells = config.columns
                     .map(col => `<td>${record[col[0]] ?? ""}</td>`)
                     .join("");
-                return `<tr class="clickable" onclick="openModal('${record.id}')">${cells}<td><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openModal('${record.id}')">View</button><button class="btn btn-pdf btn-sm" onclick="event.stopPropagation();exportSinglePdf('${record.id}')">PDF</button></div></td></tr>`;
+                return `<tr class="clickable" onclick="openModal('${record.id}')">${cells}<td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openModal('${record.id}')">View</button></td></tr>`;
             })
             .join("");
     }
@@ -279,57 +276,40 @@
     function buildGroupedMonthlyPdfMarkup(config, records, selectedMonth) {
         const groups = records.reduce((acc, record) => {
             const location = record.location || "Unspecified Location";
-            const period = record.period || "Unspecified Period";
 
             if (!acc[location]) {
-                acc[location] = {};
+                acc[location] = [];
             }
 
-            if (!acc[location][period]) {
-                acc[location][period] = [];
-            }
-
-            acc[location][period].push(record);
+            acc[location].push(record);
             return acc;
         }, {});
 
         const locationSections = Object.entries(groups)
             .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([location, periods]) => {
-                const periodBlocks = Object.entries(periods)
-                    .sort((a, b) => a[0].localeCompare(b[0]))
-                    .map(([period, entries]) => {
-                        const rows = entries
-                            .map(entry => {
-                                const rowCells = config.columns
-                                    .map(([field]) => `<td style="padding:7px 10px;border-bottom:1px solid #e8edf3;vertical-align:top;">${entry[field] ?? ""}</td>`)
-                                    .join("");
-                                return `<tr>${rowCells}</tr>`;
-                            })
+            .map(([location, entries]) => {
+                const rows = entries
+                    .map(entry => {
+                        const rowCells = config.columns
+                            .map(([field]) => `<td style="padding:7px 10px;border-bottom:1px solid #e8edf3;vertical-align:top;">${entry[field] ?? ""}</td>`)
                             .join("");
-
-                        const head = config.columns
-                            .map(([, label]) => `<th style="padding:8px 10px;text-align:left;background:#edf7ee;color:#163820;border-bottom:1px solid #d9e8dd;">${label}</th>`)
-                            .join("");
-
-                        return `
-                            <div style="margin:12px 0 18px;">
-                                <h4 style="margin:0 0 8px;color:#1f6f35;">${period} (${entries.length})</h4>
-                                <table style="width:100%;border-collapse:collapse;font-size:12px;">
-                                    <thead><tr>${head}</tr></thead>
-                                    <tbody>${rows}</tbody>
-                                </table>
-                            </div>
-                        `;
+                        return `<tr>${rowCells}</tr>`;
                     })
                     .join("");
 
-                const locationTotal = Object.values(periods).reduce((sum, list) => sum + list.length, 0);
+                const head = config.columns
+                    .map(([, label]) => `<th style="padding:8px 10px;text-align:left;background:#edf7ee;color:#163820;border-bottom:1px solid #d9e8dd;">${label}</th>`)
+                    .join("");
+
+                const locationTotal = entries.length;
 
                 return `
                     <section style="margin:18px 0 24px;padding:14px;border:1px solid #dce7dd;border-radius:12px;">
                         <h3 style="margin:0 0 8px;color:#163820;">${location} (${locationTotal})</h3>
-                        ${periodBlocks}
+                        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                            <thead><tr>${head}</tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
                     </section>
                 `;
             })
@@ -358,13 +338,11 @@
         const title = document.getElementById("reportTitle");
         const monthInput = document.getElementById("monthFilter");
         const locationInput = document.getElementById("locationFilter");
-        const periodInput = document.getElementById("periodFilter");
         const modalOverlay = document.getElementById("modalOverlay");
         const modalTitle = document.getElementById("modalTitle");
         const modalBody = document.getElementById("modalBody");
         const modalClose = document.getElementById("modalClose");
         const modalCloseBtn = document.getElementById("modalCloseBtn");
-        const modalPdfBtn = document.getElementById("modalPdfBtn");
         const exportPdfAll = document.getElementById("exportPdfAll");
 
         let filteredRecords = [];
@@ -418,18 +396,6 @@
             document.body.style.overflow = "hidden";
         };
 
-        window.exportSinglePdf = function(id) {
-            const record = filteredRecords.find(r => String(r.id) === String(id));
-            if (!record) {
-                return;
-            }
-
-            const node = createElementForPdf(buildSingleRecordPdfMarkup(config, record));
-            document.body.appendChild(node);
-            generatePdfFromElement(node, `${reportType}_entry_${id}.pdf`);
-            setTimeout(() => node.remove(), 150);
-        };
-
         if (modalClose) {
             modalClose.addEventListener("click", closeModal);
         }
@@ -451,19 +417,6 @@
                 closeModal();
             }
         });
-
-        if (modalPdfBtn) {
-            modalPdfBtn.addEventListener("click", () => {
-                if (!currentModalRecord) {
-                    return;
-                }
-
-                const node = createElementForPdf(buildSingleRecordPdfMarkup(config, currentModalRecord));
-                document.body.appendChild(node);
-                generatePdfFromElement(node, `${reportType}_entry_${currentModalRecord.id}.pdf`);
-                setTimeout(() => node.remove(), 150);
-            });
-        }
 
         if (exportPdfAll) {
             exportPdfAll.addEventListener("click", () => {
@@ -494,15 +447,13 @@
                 function applyFilters() {
                     const selectedMonth = monthInput ? monthInput.value : "";
                     const selectedLocation = locationInput ? locationInput.value : "";
-                    const selectedPeriod = periodInput ? periodInput.value : "";
 
                     const filtered = records.filter(record => {
                         const rowMonth = getMonth(record.shiftDate || record.date || record.dateOfEvacuation);
                         const monthOk = !selectedMonth || selectedMonth === rowMonth;
                         const locationOk = !selectedLocation || selectedLocation === record.location;
-                        const periodOk = !selectedPeriod || selectedPeriod === record.period;
 
-                        return monthOk && locationOk && periodOk;
+                        return monthOk && locationOk;
                     });
 
                     filteredRecords = filtered;
@@ -511,7 +462,7 @@
                     renderRows(config, filtered);
                 }
 
-                [monthInput, locationInput, periodInput].forEach(el => {
+                [monthInput, locationInput].forEach(el => {
                     if (el) {
                         el.addEventListener("change", applyFilters);
                     }
