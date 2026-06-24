@@ -35,14 +35,12 @@
                 <div class="stat-meta" id="dailyPassesDate">Date: --</div>
                 <div class="value" id="statDailyPasses">0</div>
                 <div class="stats-inline-grid" id="dailyPassesCounters"></div>
-                <div class="stats-breakdown" id="dailyPassesBreakdown"></div>
             </div>
             <div class="stat-card">
-                <div class="label">Daily Visitors Counters</div>
+                <div class="label">Daily Visitors Counters (Print Hall Entrance)</div>
                 <div class="stat-meta" id="dailyVisitorsDate">Date: --</div>
                 <div class="value" id="statDailyVisitors">0</div>
                 <div class="stats-inline-grid" id="dailyVisitorsCounters"></div>
-                <div class="stats-breakdown" id="dailyVisitorsBreakdown"></div>
             </div>
         </section>
 
@@ -674,10 +672,11 @@
         let currentModalRecord = null;
         let currentTablePage = 1;
         let rowsPerPageValue = 20;
-        let groupedActiveBeat = null;
+        let groupedActiveShift = null;
         let groupedSearchTerm = '';
         let groupedSortOrder = 'latest';
-        let groupedExpandedCardKey = null;
+        let groupedCurrentPage = 1;
+        const groupedPageSize = 15;
 
         // ============================================================
         //  3.  DOM REFS
@@ -714,8 +713,6 @@
         const dailyVisitorsDate = $('dailyVisitorsDate');
         const dailyPassesCounters = $('dailyPassesCounters');
         const dailyVisitorsCounters = $('dailyVisitorsCounters');
-        const dailyPassesBreakdown = $('dailyPassesBreakdown');
-        const dailyVisitorsBreakdown = $('dailyVisitorsBreakdown');
         const exportPdfAll = $('exportPdfAll');
 
         function startOfToday() {
@@ -787,23 +784,6 @@
                 <div><span class="key">Checked-Out</span><span class="num">${visitorTotals.checkedOut}</span></div>
             `;
 
-            dailyPassesBreakdown.innerHTML = `
-                <div class="break-row"><span class="shift">Today</span><span>I ${passTotals.issued}</span><span>R ${passTotals.returned}</span><span>NR ${passTotals.notreturned}</span><span>C ${passTotals.closed}</span></div>
-            `;
-
-            const visitorsByName = visitorsToday
-                .slice()
-                .sort((a, b) => new Date(a.details?.checkInTime || a.dateTime) - new Date(b.details?.checkInTime || b.dateTime))
-                .slice(0, 8)
-                .map(v => {
-                    const checkIn = v.details?.checkInTime || '';
-                    const checkOut = v.details?.checkOutTime || 'Pending';
-                    return `<div class="break-row"><span class="shift">${v.staffName}</span><span>${v.department}</span><span>In ${checkIn ? checkIn.slice(11, 16) : '--:--'}</span><span>Out ${checkOut === 'Pending' ? 'Pending' : checkOut.slice(11, 16)}</span></div>`;
-                })
-                .join('');
-
-            dailyVisitorsBreakdown.innerHTML = visitorsByName || '<div class="break-row"><span class="shift">No visitors today</span><span>--</span><span>In --:--</span><span>Out --:--</span></div>';
-
             const label = `Date: ${formatDateLabel(todayIso)}`;
             dailyPassesDate.textContent = label;
             dailyVisitorsDate.textContent = label;
@@ -855,10 +835,10 @@
                 return true;
             });
             currentTablePage = 1;
-            groupedActiveBeat = null;
+            groupedActiveShift = null;
             groupedSearchTerm = '';
             groupedSortOrder = 'latest';
-            groupedExpandedCardKey = null;
+            groupedCurrentPage = 1;
             render();
         }
 
@@ -870,10 +850,10 @@
             setDateRangeFromRecurrence();
             applyFilters();
             currentTablePage = 1;
-            groupedActiveBeat = null;
+            groupedActiveShift = null;
             groupedSearchTerm = '';
             groupedSortOrder = 'latest';
-            groupedExpandedCardKey = null;
+            groupedCurrentPage = 1;
         }
 
         // ============================================================
@@ -960,27 +940,31 @@
                 return;
             }
 
-            // Build lightweight hierarchy: Beat -> records
+            // Build lightweight hierarchy: Shift -> records
             const tree = {};
             filteredRecords.forEach(r => {
-                const beat = r.location;
-                if (!tree[beat]) tree[beat] = [];
-                tree[beat].push(r);
+                const shift = r.shift || 'Unspecified';
+                if (!tree[shift]) tree[shift] = [];
+                tree[shift].push(r);
             });
 
-            const beatEntries = Object.entries(tree);
+            const shiftEntries = Object.entries(tree);
             let html = '';
 
             html += `<div class="grouped-tabs grouped-tabs-primary">`;
-            beatEntries.forEach(([beat, records]) => {
-                const beatCount = records.length;
-                const activeClass = groupedActiveBeat === beat ? 'active' : '';
-                html += `<button class="group-tab ${activeClass}" onclick="setGroupedBeat('${escapeSingleQuote(beat)}')">${beat} (${beatCount})</button>`;
+            shiftEntries.forEach(([shift, records]) => {
+                const shiftCount = records.length;
+                const activeClass = groupedActiveShift === shift ? 'active' : '';
+                html += `<button class="group-tab ${activeClass}" onclick="setGroupedShift('${escapeSingleQuote(shift)}')">${shift} (${shiftCount})</button>`;
             });
             html += `</div>`;
 
-            if (!groupedActiveBeat || !tree[groupedActiveBeat]) {
-                html += `<div class="grouped-hint">Select a Beat tab to load its grouped records.</div>`;
+            if (!groupedActiveShift && shiftEntries.length) {
+                groupedActiveShift = shiftEntries[0][0];
+            }
+
+            if (!groupedActiveShift || !tree[groupedActiveShift]) {
+                html += `<div class="grouped-hint">Select a shift tab to load records for that shift.</div>`;
                 groupedContainer.innerHTML = html;
                 return;
             }
@@ -995,7 +979,7 @@
                 </div>
             `;
 
-            const selectedRecords = tree[groupedActiveBeat] || [];
+            const selectedRecords = tree[groupedActiveShift] || [];
             const query = groupedSearchTerm.trim().toLowerCase();
             const visibleRecords = selectedRecords
                 .filter(r => {
@@ -1021,13 +1005,19 @@
                 });
 
             if (visibleRecords.length === 0) {
-                html += `<div class="grouped-hint">No records found for this Beat with the current search.</div>`;
+                html += `<div class="grouped-hint">No records found for this shift with the current search.</div>`;
                 groupedContainer.innerHTML = html;
                 return;
             }
 
+            const groupedTotalPages = Math.max(1, Math.ceil(visibleRecords.length / groupedPageSize));
+            if (groupedCurrentPage > groupedTotalPages) groupedCurrentPage = groupedTotalPages;
+            const groupedStartIndex = (groupedCurrentPage - 1) * groupedPageSize;
+            const groupedEndIndex = Math.min(groupedStartIndex + groupedPageSize, visibleRecords.length);
+            const pageRecords = visibleRecords.slice(groupedStartIndex, groupedEndIndex);
+
             html += `<div class="grouped-cards">`;
-            visibleRecords.forEach(r => {
+            pageRecords.forEach(r => {
                 const statusLabel = getStatusLabel(r.status);
                 const typeLabel = getTypeLabel(r.type);
                 const typeIcon = getTypeIcon(r.type);
@@ -1059,28 +1049,41 @@
             });
             html += `</div>`;
 
+            if (groupedTotalPages > 1) {
+                html += `
+                <div class="table-pagination" style="margin-top:12px;">
+                    <div class="page-info">Showing ${groupedStartIndex + 1}-${groupedEndIndex} of ${visibleRecords.length} (Page ${groupedCurrentPage} of ${groupedTotalPages})</div>
+                    <div class="page-controls">
+                        <button class="btn btn-outline btn-sm" onclick="setGroupedPage(${groupedCurrentPage - 1})" ${groupedCurrentPage <= 1 ? 'disabled' : ''}>Previous</button>
+                        <button class="btn btn-outline btn-sm" onclick="setGroupedPage(${groupedCurrentPage + 1})" ${groupedCurrentPage >= groupedTotalPages ? 'disabled' : ''}>Next</button>
+                    </div>
+                </div>
+                `;
+            }
+
             groupedContainer.innerHTML = html;
         }
 
-        window.setGroupedBeat = function(beat) {
-            groupedActiveBeat = beat;
-            groupedExpandedCardKey = null;
+        window.setGroupedShift = function(shift) {
+            groupedActiveShift = shift;
+            groupedCurrentPage = 1;
             renderGrouped();
         };
 
         window.setGroupedSearch = function(value) {
             groupedSearchTerm = value || '';
+            groupedCurrentPage = 1;
             renderGrouped();
         };
 
         window.setGroupedSort = function(value) {
             groupedSortOrder = value === 'oldest' ? 'oldest' : 'latest';
-            groupedExpandedCardKey = null;
+            groupedCurrentPage = 1;
             renderGrouped();
         };
 
-        window.setGroupedExpandedCard = function(cardKey) {
-            groupedExpandedCardKey = cardKey;
+        window.setGroupedPage = function(page) {
+            groupedCurrentPage = Math.max(1, Number(page) || 1);
             renderGrouped();
         };
 
